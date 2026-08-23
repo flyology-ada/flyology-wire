@@ -1,0 +1,40 @@
+{
+  "binding_format": "flyology-wire-ada-binding",
+  "binding_version": 1,
+  "fields": [
+    {
+      "ada_alternatives": [
+        {
+          "ada_literal": "Profile_1_Variant_Test_Types.Number_Choice",
+          "fields": [
+            {
+              "ada_component": "Number",
+              "ada_scalar": "interfaces_unsigned_64",
+              "tag": 1
+            }
+          ],
+          "tag": 1
+        },
+        {
+          "ada_literal": "Profile_1_Variant_Test_Types.Flag_Choice",
+          "fields": [
+            {
+              "ada_component": "Flag",
+              "ada_scalar": "boolean",
+              "tag": 1
+            }
+          ],
+          "tag": 9
+        }
+      ],
+      "ada_component": "Kind",
+      "tag": 1
+    }
+  ],
+  "package_name": "Generated_Profile_1_Variant_Test_Codec",
+  "schema_fingerprint": "4832cec5ea0dc2f80d0e3a0fbc1b83ba284aafe1f3aab6d59def6bffb9996073",
+  "value_type": "Profile_1_Variant_Test_Types.Value",
+  "with_units": [
+    "Profile_1_Variant_Test_Types"
+  ]
+}

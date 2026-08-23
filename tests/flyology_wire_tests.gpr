@@ -1,6 +1,6 @@
 with "../flyology_wire.gpr";
 project Flyology_Wire_Tests is
-   for Source_Dirs use ("src/");
+   for Source_Dirs use ("src/", "generated/");
    for Object_Dir use "obj";
    for Exec_Dir use "bin";
    for Create_Missing_Dirs use "True";
@@ -9,11 +9,20 @@ project Flyology_Wire_Tests is
       "tagged_smoke.adb",
       "compatibility_smoke.adb",
       "profile_codec_smoke.adb",
+      "generated_codec_smoke.adb",
+      "generated_signed_codec_smoke.adb",
+      "generated_defaulted_codec_smoke.adb",
+      "generated_sequence_codec_smoke.adb",
+      "generated_optional_codec_smoke.adb",
+      "generated_bytes_codec_smoke.adb",
+      "generated_text_codec_smoke.adb",
+      "generated_enumeration_codec_smoke.adb",
+      "generated_variant_codec_smoke.adb",
       "borrowed_observer_smoke.adb");
 
    package Compiler is
       for Default_Switches ("Ada") use
-        ("-gnat2022", "-gnatwa", "-gnatW8", "-gnatVa", "-gnatyM110");
+        ("-gnat2022", "-gnatwa", "-gnatwe", "-gnatW8", "-gnatVa", "-gnatyM110");
    end Compiler;
 
    package Format is

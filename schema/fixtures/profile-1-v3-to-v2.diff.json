@@ -1,0 +1,13 @@
+{
+  "diff_format": "flyology-wire-schema-diff",
+  "diff_version": 1,
+  "incompatibilities": [],
+  "reader_fingerprint": "333f54155fba8344278b98983b8ce91eaec6074e3ebdf3e223f7f520d1532c26",
+  "requirements": [
+    {
+      "code": "ignore_writer_field",
+      "path": "$.root.field[3]"
+    }
+  ],
+  "writer_fingerprint": "0081b2daedd5f36a30b65362dae48012f5d0e803800adbd8f233098d17dcb071"
+}

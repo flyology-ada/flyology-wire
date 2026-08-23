@@ -1,0 +1,26 @@
+{
+  "binding_format": "flyology-wire-ada-binding",
+  "binding_version": 1,
+  "fields": [
+    {
+      "ada_component": "Shade",
+      "ada_literals": [
+        {
+          "ada_literal": "Profile_1_Enumeration_Test_Types.Red",
+          "tag": 1
+        },
+        {
+          "ada_literal": "Profile_1_Enumeration_Test_Types.Green",
+          "tag": 9
+        }
+      ],
+      "tag": 1
+    }
+  ],
+  "package_name": "Generated_Profile_1_Enum_Test_Codec",
+  "schema_fingerprint": "0641281e8a4609eee8e94b22a5a06574b975172f58592f1732e0a5708e662fea",
+  "value_type": "Profile_1_Enumeration_Test_Types.Value",
+  "with_units": [
+    "Profile_1_Enumeration_Test_Types"
+  ]
+}

@@ -49,8 +49,9 @@ Profile 1 uses these schema-selected value encodings:
   base-128 varint.
 - Signed integer of at most 64 bits: ZigZag transform followed by the shortest
   unsigned varint.
-- Enumeration and variant selector: an explicit nonzero overlay tag encoded as
-  an unsigned varint; never Ada position or representation value.
+- Enumeration and variant selector: an explicit overlay tag in
+  `1 .. 2**29 - 1`, encoded as a shortest unsigned varint; never Ada position
+  or representation value.
 - Byte sequence: its raw octets. The enclosing field supplies the byte length.
 - Text: validated UTF-8 selected explicitly by the overlay.
 - Record: the recursive record grammar above.

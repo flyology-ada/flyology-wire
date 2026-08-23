@@ -1,0 +1,18 @@
+{
+  "binding_format": "flyology-wire-ada-binding",
+  "binding_version": 1,
+  "fields": [
+    {
+      "ada_component": "Items",
+      "ada_element_scalar": "interfaces_unsigned_64",
+      "ada_length_component": "Length",
+      "tag": 1
+    }
+  ],
+  "package_name": "Generated_Profile_1_Sequence_Test_Codec",
+  "schema_fingerprint": "540d120e71dc57b20e42a5afbbb4f8802d3f75f5a449db5cf0a57c9bb21db413",
+  "value_type": "Profile_1_Sequence_Test_Types.Value",
+  "with_units": [
+    "Profile_1_Sequence_Test_Types"
+  ]
+}

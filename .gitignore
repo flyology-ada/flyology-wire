@@ -6,6 +6,8 @@
 /tests/bin/
 /tests/alire/
 /tests/config/
+__pycache__/
+*.py[cod]
 /.agents/
 /.claude/rules/
 /.claude/skills/

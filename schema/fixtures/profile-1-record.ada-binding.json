@@ -1,0 +1,22 @@
+{
+  "binding_format": "flyology-wire-ada-binding",
+  "binding_version": 1,
+  "fields": [
+    {
+      "ada_component": "Code",
+      "ada_scalar": "interfaces_unsigned_64",
+      "tag": 1
+    },
+    {
+      "ada_component": "Enabled",
+      "ada_scalar": "boolean",
+      "tag": 2
+    }
+  ],
+  "package_name": "Generated_Profile_1_Test_Codec",
+  "schema_fingerprint": "333f54155fba8344278b98983b8ce91eaec6074e3ebdf3e223f7f520d1532c26",
+  "value_type": "Profile_1_Test_Types.Value",
+  "with_units": [
+    "Profile_1_Test_Types"
+  ]
+}

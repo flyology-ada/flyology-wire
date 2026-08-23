@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://flyology.dev/schema/wire/schema-lock-v1.schema.json",
+  "title": "Flyology Wire Profile 1 schema lock",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "family_id",
+    "fingerprint",
+    "lock_format",
+    "lock_version",
+    "profile_id",
+    "root",
+    "schema_revision"
+  ],
+  "properties": {
+    "family_id": {
+      "type": "string",
+      "pattern": "^(?!0{32}$)[0-9a-f]{32}$"
+    },
+    "fingerprint": {
+      "type": "string",
+      "pattern": "^(?!0{64}$)[0-9a-f]{64}$"
+    },
+    "lock_format": {
+      "const": "flyology-wire-schema-lock"
+    },
+    "lock_version": {
+      "const": 1
+    },
+    "profile_id": {
+      "const": 1
+    },
+    "root": {
+      "$ref": "#/$defs/value"
+    },
+    "schema_revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4294967295
+    }
+  },
+  "$defs": {
+    "decimal": {
+      "type": "string",
+      "pattern": "^(0|-?[1-9][0-9]*)$"
+    },
+    "nonnegative_decimal": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)$"
+    },
+    "field_tag": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 536870911
+    },
+    "value_tag": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 536870911
+    },
+    "value": {
+      "oneOf": [
+        {"$ref": "#/$defs/boolean"},
+        {"$ref": "#/$defs/integer"},
+        {"$ref": "#/$defs/enumeration"},
+        {"$ref": "#/$defs/bytes"},
+        {"$ref": "#/$defs/text"},
+        {"$ref": "#/$defs/record"},
+        {"$ref": "#/$defs/sequence"},
+        {"$ref": "#/$defs/optional"},
+        {"$ref": "#/$defs/variant"}
+      ]
+    },
+    "boolean": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {"kind": {"const": "boolean"}}
+    },
+    "integer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "maximum", "minimum"],
+      "properties": {
+        "kind": {"enum": ["signed", "unsigned"]},
+        "maximum": {"$ref": "#/$defs/decimal"},
+        "minimum": {"$ref": "#/$defs/decimal"}
+      }
+    },
+    "enumeration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "reserved_tags", "values"],
+      "properties": {
+        "kind": {"const": "enumeration"},
+        "reserved_tags": {"$ref": "#/$defs/reserved_value_tags"},
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["tag"],
+            "properties": {"tag": {"$ref": "#/$defs/value_tag"}}
+          }
+        }
+      }
+    },
+    "bytes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["construction_lower_bound", "kind", "maximum_octets", "minimum_octets"],
+      "properties": {
+        "construction_lower_bound": {"$ref": "#/$defs/decimal"},
+        "kind": {"const": "bytes"},
+        "maximum_octets": {"$ref": "#/$defs/nonnegative_decimal"},
+        "minimum_octets": {"$ref": "#/$defs/nonnegative_decimal"}
+      }
+    },
+    "text": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "construction_lower_bound",
+        "encoding",
+        "kind",
+        "maximum_octets",
+        "maximum_scalars",
+        "minimum_octets",
+        "minimum_scalars"
+      ],
+      "properties": {
+        "construction_lower_bound": {"$ref": "#/$defs/decimal"},
+        "encoding": {"const": "utf-8"},
+        "kind": {"const": "text"},
+        "maximum_octets": {"$ref": "#/$defs/nonnegative_decimal"},
+        "maximum_scalars": {"$ref": "#/$defs/nonnegative_decimal"},
+        "minimum_octets": {"$ref": "#/$defs/nonnegative_decimal"},
+        "minimum_scalars": {"$ref": "#/$defs/nonnegative_decimal"}
+      }
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fields", "kind", "reserved_tags"],
+      "properties": {
+        "fields": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/field"}
+        },
+        "kind": {"const": "record"},
+        "reserved_tags": {"$ref": "#/$defs/reserved_field_tags"}
+      }
+    },
+    "field": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["presence", "tag", "value"],
+          "properties": {
+            "presence": {"enum": ["optional", "required"]},
+            "tag": {"$ref": "#/$defs/field_tag"},
+            "value": {"$ref": "#/$defs/value"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["default_wire", "presence", "tag", "value"],
+          "properties": {
+            "default_wire": {
+              "type": "string",
+              "pattern": "^([0-9a-f]{2})*$"
+            },
+            "presence": {"const": "defaulted"},
+            "tag": {"$ref": "#/$defs/field_tag"},
+            "value": {"$ref": "#/$defs/value"}
+          }
+        }
+      ]
+    },
+    "sequence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimensions", "element", "kind"],
+      "properties": {
+        "dimensions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["construction_lower_bound", "maximum_count", "minimum_count"],
+            "properties": {
+              "construction_lower_bound": {"$ref": "#/$defs/decimal"},
+              "maximum_count": {"$ref": "#/$defs/nonnegative_decimal"},
+              "minimum_count": {"$ref": "#/$defs/nonnegative_decimal"}
+            }
+          }
+        },
+        "element": {"$ref": "#/$defs/value"},
+        "kind": {"const": "sequence"}
+      }
+    },
+    "optional": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value"],
+      "properties": {
+        "kind": {"const": "optional"},
+        "value": {"$ref": "#/$defs/value"}
+      }
+    },
+    "variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["alternatives", "kind", "reserved_tags"],
+      "properties": {
+        "alternatives": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["tag", "value"],
+            "properties": {
+              "tag": {"$ref": "#/$defs/value_tag"},
+              "value": {"$ref": "#/$defs/record"}
+            }
+          }
+        },
+        "kind": {"const": "variant"},
+        "reserved_tags": {"$ref": "#/$defs/reserved_value_tags"}
+      }
+    },
+    "reserved_field_tags": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/field_tag"}
+    },
+    "reserved_value_tags": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/value_tag"}
+    }
+  }
+}

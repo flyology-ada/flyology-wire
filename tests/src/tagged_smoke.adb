@@ -76,34 +76,40 @@ procedure Tagged_Smoke is
 
    procedure Lend_Extent is new Profile.Visit_Extent (Record_Extent);
 
-   Output           : Wire.Octet_Array (20 .. 29) := [others => 16#CC#];
-   Output_Before    : constant Wire.Octet_Array := Output;
-   Small            : Wire.Octet_Array (1 .. 1) := [others => 16#DD#];
-   Small_Before     : constant Wire.Octet_Array := Small;
-   Writer           : Profile.Write_Cursor;
-   Nested_Writer    : Profile.Write_Cursor;
-   Reader           : Profile.Read_Cursor;
-   Nested_Reader    : Profile.Read_Cursor;
-   Cursor_Result    : Profile.Cursor_Status;
-   Write_Result     : Profile.Write_Status;
-   Read_Result      : Profile.Read_Status;
-   Size_Result      : Sizes.Arithmetic_Status;
-   Previous         : Profile.Tag_Number;
-   Tag              : Profile.Field_Tag;
-   Region           : Profile.Extent;
-   Decoded_Unsigned : Interfaces.Unsigned_64;
-   Decoded_Signed   : Interfaces.Integer_64;
-   Decoded_Boolean  : Boolean;
-   Measured         : Wire.Byte_Count;
-   Malformed        : Wire.Octet_Array (1 .. 10);
-   Ordered_Record   : Wire.Octet_Array (20 .. 26) := [others => 16#CC#];
-   Long_Output      : Wire.Octet_Array (30 .. 159) := [others => 16#CC#];
-   Empty_Text       : constant Wire.Octet_Array (1 .. 0) := [others => 0];
-   Extreme_Input    :
+   Output            : Wire.Octet_Array (20 .. 29) := [others => 16#CC#];
+   Output_Before     : constant Wire.Octet_Array := Output;
+   Small             : Wire.Octet_Array (1 .. 1) := [others => 16#DD#];
+   Small_Before      : constant Wire.Octet_Array := Small;
+   Writer            : Profile.Write_Cursor;
+   Nested_Writer     : Profile.Write_Cursor;
+   Reader            : Profile.Read_Cursor;
+   Nested_Reader     : Profile.Read_Cursor;
+   Cursor_Result     : Profile.Cursor_Status;
+   Write_Result      : Profile.Write_Status;
+   Read_Result       : Profile.Read_Status;
+   Size_Result       : Sizes.Arithmetic_Status;
+   Previous          : Profile.Tag_Number;
+   Tag               : Profile.Field_Tag;
+   Region            : Profile.Extent;
+   Decoded_Unsigned  : Interfaces.Unsigned_64;
+   Decoded_Signed    : Interfaces.Integer_64;
+   Decoded_Boolean   : Boolean;
+   Measured          : Wire.Byte_Count;
+   Malformed         : Wire.Octet_Array (1 .. 10);
+   Ordered_Record    : Wire.Octet_Array (20 .. 26) := [others => 16#CC#];
+   Long_Output       : Wire.Octet_Array (30 .. 159) := [others => 16#CC#];
+   Empty_Text        : constant Wire.Octet_Array (1 .. 0) := [others => 0];
+   Raw_Source        : constant Wire.Octet_Array (40 .. 43) := [16#10#, 16#20#, 16#30#, 16#40#];
+   Raw_Output        : Wire.Octet_Array (50 .. 54) := [others => 16#CC#];
+   Raw_Output_Before : Wire.Octet_Array (50 .. 54);
+   Raw_Value         : Wire.Octet_Array (60 .. 63) := [others => 16#DD#];
+   Raw_Value_Before  : Wire.Octet_Array (60 .. 63);
+   Extreme_Input     :
      constant Wire.Octet_Array
                 (Ada.Streams.Stream_Element_Offset'First .. Ada.Streams.Stream_Element_Offset'First) :=
        [others => 42];
-   UTF_8_Result     : Profile.UTF_8_Status;
+   UTF_8_Result      : Profile.UTF_8_Status;
+   UTF_8_Scalars     : Wire.Octet_Count;
 begin
    Lend_Extent (Extreme_Input, Profile.Empty_Extent, Cursor_Result);
    Assert
@@ -188,6 +194,74 @@ begin
    Assert
      (Read_Result = Profile.Invalid_Boolean and then Profile.Consumed (Reader) = 0,
       "invalid boolean was accepted or consumed");
+
+   Profile.Initialize (Writer, Raw_Output);
+   Profile.Write_Octets (Raw_Output, Writer, Raw_Source, 3, Write_Result);
+   Assert
+     (Write_Result = Profile.Wrote
+      and then Profile.Consumed (Writer) = 3
+      and then Raw_Output (50 .. 52) = Raw_Source (40 .. 42)
+      and then Raw_Output (53 .. 54) = Wire.Octet_Array'(53 .. 54 => 16#CC#),
+      "raw octets were not written from arbitrary lower bounds");
+   Profile.Initialize (Reader, Raw_Output, (Start => 0, Length => 3), Cursor_Result);
+   Profile.Read_Octets (Raw_Output, Reader, Raw_Value, 3, Read_Result);
+   Assert
+     (Cursor_Result = Profile.Cursor_Ready
+      and then Read_Result = Profile.Read
+      and then Profile.Consumed (Reader) = 3
+      and then Raw_Value (60 .. 62) = Raw_Source (40 .. 42)
+      and then Raw_Value (63) = 16#DD#,
+      "raw octets were not read into an arbitrary lower bound");
+
+   Profile.Initialize (Writer, Raw_Output);
+   Raw_Output_Before := Raw_Output;
+   Profile.Write_Octets (Raw_Output, Writer, Raw_Source, 0, Write_Result);
+   Assert
+     (Write_Result = Profile.Wrote
+      and then Profile.Consumed (Writer) = 0
+      and then Raw_Output = Raw_Output_Before,
+      "zero-length raw write modified its destination");
+   Profile.Initialize (Reader, Raw_Output);
+   Raw_Value_Before := Raw_Value;
+   Profile.Read_Octets (Raw_Output, Reader, Raw_Value, 0, Read_Result);
+   Assert
+     (Read_Result = Profile.Read and then Profile.Consumed (Reader) = 0 and then Raw_Value = Raw_Value_Before,
+      "zero-length raw read modified its destination");
+
+   Profile.Initialize (Writer, Raw_Output, (Start => 0, Length => 2), Cursor_Result);
+   Raw_Output_Before := Raw_Output;
+   Profile.Write_Octets (Raw_Output, Writer, Raw_Source, 3, Write_Result);
+   Assert
+     (Cursor_Result = Profile.Cursor_Ready
+      and then Write_Result = Profile.Destination_Too_Small
+      and then Profile.Consumed (Writer) = 0
+      and then Raw_Output = Raw_Output_Before,
+      "short raw destination was modified");
+   Profile.Initialize (Reader, Raw_Source, (Start => 0, Length => 2), Cursor_Result);
+   Raw_Value_Before := Raw_Value;
+   Profile.Read_Octets (Raw_Source, Reader, Raw_Value, 3, Read_Result);
+   Assert
+     (Cursor_Result = Profile.Cursor_Ready
+      and then Read_Result = Profile.Truncated
+      and then Profile.Consumed (Reader) = 0
+      and then Raw_Value = Raw_Value_Before,
+      "short raw source modified its destination or cursor");
+   Profile.Initialize (Reader, Raw_Source);
+   Raw_Value_Before := Raw_Value;
+   Profile.Read_Octets (Raw_Source, Reader, Raw_Value (60 .. 61), 3, Read_Result);
+   Assert
+     (Read_Result = Profile.Destination_Too_Small
+      and then Profile.Consumed (Reader) = 0
+      and then Raw_Value = Raw_Value_Before,
+      "short raw value destination was modified or consumed input");
+   Profile.Initialize (Writer, Raw_Output);
+   Raw_Output_Before := Raw_Output;
+   Profile.Write_Octets (Raw_Output, Writer, Raw_Source (40 .. 41), 3, Write_Result);
+   Assert
+     (Write_Result = Profile.Destination_Too_Small
+      and then Profile.Consumed (Writer) = 0
+      and then Raw_Output = Raw_Output_Before,
+      "short raw source modified output or its cursor");
 
    Profile.Initialize (Writer, Ordered_Record);
    Previous := Profile.No_Tag;
@@ -383,9 +457,29 @@ begin
        9  => 16#8D#,
        10 => 16#88#],
       Profile.Valid_UTF_8);
+   Profile.Validate_UTF_8
+     ([1  => 16#41#,
+       2  => 16#C2#,
+       3  => 16#A2#,
+       4  => 16#E2#,
+       5  => 16#82#,
+       6  => 16#AC#,
+       7  => 16#F0#,
+       8  => 16#90#,
+       9  => 16#8D#,
+       10 => 16#88#],
+      (Start => 0, Length => 10),
+      UTF_8_Scalars,
+      UTF_8_Result);
+   Assert (UTF_8_Result = Profile.Valid_UTF_8 and then UTF_8_Scalars = 4, "UTF-8 scalar count is wrong");
    Check_UTF_8 (Empty_Text, Profile.Valid_UTF_8);
    Check_UTF_8 ([1 => 16#F4#, 2 => 16#8F#, 3 => 16#BF#, 4 => 16#BF#], Profile.Valid_UTF_8);
    Check_UTF_8 ([1 => 16#C0#, 2 => 16#AF#], Profile.Invalid_UTF_8);
+   Profile.Validate_UTF_8
+     ([1 => 16#41#, 2 => 16#C0#], (Start => 0, Length => 2), UTF_8_Scalars, UTF_8_Result);
+   Assert
+     (UTF_8_Result = Profile.Invalid_UTF_8 and then UTF_8_Scalars = 0,
+      "invalid UTF-8 published a partial scalar count");
    Check_UTF_8 ([1 => 16#C2#, 2 => 16#41#], Profile.Invalid_UTF_8);
    Check_UTF_8 ([1 => 16#F5#, 2 => 16#80#, 3 => 16#80#, 4 => 16#80#], Profile.Invalid_UTF_8);
    Check_UTF_8 ([1 => 16#ED#, 2 => 16#A0#, 3 => 16#80#], Profile.Invalid_UTF_8);

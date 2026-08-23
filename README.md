@@ -10,8 +10,21 @@ performs no I/O and has no dependency on Flyology or remoting.
 
 The current milestone contains the minimum runtime surface needed by
 `flyology_remoting` and the allocation-free scalar, field-header, extent, and
-cursor primitives for canonical tagged Profile 1. Schema derivation,
-compatibility tooling, and generated codecs remain offline additions.
+cursor primitives for canonical tagged Profile 1. A scoped generic extent
+lender supports generated two-pass borrowed observers without returning a
+view or retaining an access value. The repository also contains the closed
+Profile 1 schema-lock format, offline fingerprint validator, directional
+compatibility diff, and exact compatibility-approval format. Schema derivation
+remains an offline addition. The initial deterministic Ada backend generates
+a codec for nonempty records containing required/defaulted/optional scalar
+fields, required bounded byte/UTF-8 text fields, required enumerations, or
+required one-dimensional bounded scalar sequences from a checked binding
+manifest. The first variant backend binds a sole required root field to an
+application-owned selector and required scalar alternative records. A requested
+generated two-pass visitor validates the complete payload before lending byte
+or UTF-8 extents in the caller's original storage. Exact writer locks and
+reviewed directional approvals optionally generate bounded compatibility
+branches.
 Libadalang is a build-tool dependency of the shared `flyology_type_ir`
 extractor, not a runtime dependency of this crate.
 
@@ -26,6 +39,66 @@ alr build
 alr -C tests build
 tests/bin/wire_smoke
 ```
+
+Run the schema-lock checks and every Ada smoke program with:
+
+```sh
+./scripts/test.sh
+```
+
+The schema-lock and compatibility tools use only Python 3's standard library
+and are not Alire or runtime dependencies. Decision 0008 defines the semantic
+fingerprint projection; the committed fixtures under `schema/fixtures/`
+fingerprint the same three writer identities used by the end-to-end Profile 1
+codec test.
+
+Regenerate or verify the initial Ada fixture with:
+
+```sh
+python3 tools/generate_ada.py \
+  --compatible-writer \
+  schema/fixtures/profile-1-record-v1.lock.json \
+  schema/fixtures/profile-1-v1-to-v2.approval.json \
+  --compatible-writer \
+  schema/fixtures/profile-1-record-v3.lock.json \
+  schema/fixtures/profile-1-v3-to-v2.approval.json \
+  schema/fixtures/profile-1-record.lock.json \
+  schema/fixtures/profile-1-record.ada-binding.json \
+  tests/generated
+python3 tools/generate_ada.py \
+  --check \
+  --compatible-writer \
+  schema/fixtures/profile-1-record-v1.lock.json \
+  schema/fixtures/profile-1-v1-to-v2.approval.json \
+  --compatible-writer \
+  schema/fixtures/profile-1-record-v3.lock.json \
+  schema/fixtures/profile-1-v3-to-v2.approval.json \
+  schema/fixtures/profile-1-record.lock.json \
+  schema/fixtures/profile-1-record.ada-binding.json \
+  tests/generated
+```
+
+The parallel `profile-1-signed-record` fixture compiles and executes the signed
+ZigZag path rather than relying only on generator-text assertions. The
+`profile-1-defaulted-record` fixture exercises an all-defaulted record whose
+canonical payload is empty. The `profile-1-sequence-record` fixture uses a
+definite Ada array plus explicit logical count and exercises element framing,
+capacity, and construction-lower-bound checks.
+The `profile-1-optional-record` fixture binds separate presence and scalar
+components so none remains distinct from a present zero value.
+The `profile-1-bytes-record` fixture binds a definite stream-element array and
+explicit logical length. It exercises exact copy construction, static capacity
+and lower-bound rejection, and generated callback-scoped observation without a
+payload copy.
+The `profile-1-text-record` fixture uses the same definite octet-storage model
+with explicit UTF-8 intent. It enforces both octet and Unicode-scalar bounds,
+rejects malformed text before encoding or callbacks, and performs no implicit
+Ada `String` transcoding.
+The `profile-1-enumeration-record` fixture proves that explicit value tags do
+not derive from Ada literal positions or representation values. The
+`profile-1-variant-record` fixture applies the same rule to selectors and
+length-delimited alternative records while ignoring inactive application
+storage.
 
 Architecture and implementation changes follow the mandatory review cycle in
 [`CONTRIBUTING.md`](CONTRIBUTING.md). The initial runtime boundary is recorded

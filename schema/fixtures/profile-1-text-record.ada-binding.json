@@ -1,0 +1,19 @@
+{
+  "binding_format": "flyology-wire-ada-binding",
+  "binding_version": 1,
+  "fields": [
+    {
+      "ada_component": "UTF_8",
+      "ada_length_component": "UTF_8_Length",
+      "ada_text": "utf_8_stream_element_array",
+      "borrowed_observer": true,
+      "tag": 1
+    }
+  ],
+  "package_name": "Generated_Profile_1_Text_Test_Codec",
+  "schema_fingerprint": "0c21277ce7bfa4af4cae2ebdf8de11169eede970a10f60ba6fc3c0bd5a4cb36a",
+  "value_type": "Profile_1_Text_Test_Types.Value",
+  "with_units": [
+    "Profile_1_Text_Test_Types"
+  ]
+}

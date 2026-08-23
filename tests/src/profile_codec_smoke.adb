@@ -38,6 +38,7 @@ procedure Profile_Codec_Smoke is
    Exact_Payload     : constant Wire.Octet_Array := [1, 2, 16#AC#, 2, 2, 1, 1];
    Older_Payload     : constant Wire.Octet_Array := [1, 2, 16#AC#, 2];
    Future_Payload    : constant Wire.Octet_Array := [1, 2, 16#AC#, 2, 2, 1, 1, 3, 1, 16#FE#];
+   Oversized_Future  : constant Wire.Octet_Array := [1, 2, 16#AC#, 2, 2, 1, 1, 3, 2, 16#FE#, 16#FF#];
    Missing_Required  : constant Wire.Octet_Array := [2, 1, 1];
    Duplicate_Tag     : constant Wire.Octet_Array := [1, 1, 1, 1, 1, 2];
    Trailing_Value    : constant Wire.Octet_Array := [1, 2, 1, 0, 2, 1, 1];
@@ -94,6 +95,11 @@ begin
    Assert
      (Decode_Result = Codecs.Decoded and then Decoded = Source,
       "future compatible payload did not skip its approved tag");
+
+   Codec.Contract.Decode (Codec.Future_Schema, Oversized_Future, Decoded, Decode_Result);
+   Assert
+     (Decode_Result = Codecs.Invalid_Value and then Decoded = (Code => 1, Enabled => False),
+      "future compatible payload exceeded its ignored-field bound");
 
    Codec.Contract.Decode (Codec.Local_Schema, Future_Payload, Decoded, Decode_Result);
    Assert

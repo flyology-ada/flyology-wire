@@ -1,0 +1,13 @@
+{
+  "approval_format": "flyology-wire-compatibility-approval",
+  "approval_version": 1,
+  "diff_fingerprint": "dbb8bf28c97e8353b8b1e0b62689b88b932bd8ac2fc239bd081243e52ffbcae1",
+  "reader_fingerprint": "333f54155fba8344278b98983b8ce91eaec6074e3ebdf3e223f7f520d1532c26",
+  "resolutions": [
+    {
+      "action": "ignore_writer_field",
+      "path": "$.root.field[3]"
+    }
+  ],
+  "writer_fingerprint": "0081b2daedd5f36a30b65362dae48012f5d0e803800adbd8f233098d17dcb071"
+}

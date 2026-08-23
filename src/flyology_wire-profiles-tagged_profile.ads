@@ -48,6 +48,7 @@ is
       Value_Overflow,
       Noncanonical,
       Invalid_Boolean,
+      Destination_Too_Small,
       Invalid_Tag,
       Tag_Order_Error,
       Extent_Outside_Container);
@@ -66,6 +67,15 @@ is
 
    procedure Read_Boolean
      (Input : Octet_Array; Cursor : in out Read_Cursor; Value : out Boolean; Status : out Read_Status);
+
+   --  Copy Count raw octets into the prefix of Value. Cursor and Value remain
+   --  unchanged when either source or destination is too short.
+   procedure Read_Octets
+     (Input  : Octet_Array;
+      Cursor : in out Read_Cursor;
+      Value  : in out Octet_Array;
+      Count  : Octet_Count;
+      Status : out Read_Status);
 
    --  Read a shortest-varint length and reserve exactly that many octets.
    --  Cursor remains unchanged on failure.
@@ -112,6 +122,15 @@ is
    procedure Write_Boolean
      (Output : in out Octet_Array; Cursor : in out Write_Cursor; Value : Boolean; Status : out Write_Status);
 
+   --  Copy Count octets from the prefix of Value. Cursor and Output remain
+   --  unchanged when either source or destination is too short.
+   procedure Write_Octets
+     (Output : in out Octet_Array;
+      Cursor : in out Write_Cursor;
+      Value  : Octet_Array;
+      Count  : Octet_Count;
+      Status : out Write_Status);
+
    --  Write a shortest-varint length, reserve the value extent, and advance
    --  Cursor past it. Output and Cursor remain unchanged on failure.
    procedure Write_Length_Delimited
@@ -147,6 +166,11 @@ is
    --  Validate one complete extent as shortest-form Unicode UTF-8, excluding
    --  surrogate code points and values above U+10FFFF.
    procedure Validate_UTF_8 (Input : Octet_Array; Region : Extent; Status : out UTF_8_Status);
+
+   --  Also return the exact Unicode scalar count. Scalar_Count is zero on
+   --  failure, including an invalid extent.
+   procedure Validate_UTF_8
+     (Input : Octet_Array; Region : Extent; Scalar_Count : out Octet_Count; Status : out UTF_8_Status);
 
    function ZigZag_Encode (Value : Interfaces.Integer_64) return Interfaces.Unsigned_64;
    function ZigZag_Decode (Value : Interfaces.Unsigned_64) return Interfaces.Integer_64;

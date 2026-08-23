@@ -1,0 +1,24 @@
+{
+  "binding_format": "flyology-wire-ada-binding",
+  "binding_version": 1,
+  "fields": [
+    {
+      "ada_component": "Code",
+      "ada_scalar": "interfaces_unsigned_64",
+      "tag": 1
+    },
+    {
+      "ada_bytes": "stream_element_array",
+      "ada_component": "Data",
+      "ada_length_component": "Data_Length",
+      "borrowed_observer": true,
+      "tag": 2
+    }
+  ],
+  "package_name": "Generated_Profile_1_Bytes_Test_Codec",
+  "schema_fingerprint": "f84e3a0454ad0c6ee4055ba9c16bf537f89d7cf0b3fc593d739ce33169d923ac",
+  "value_type": "Profile_1_Bytes_Test_Types.Value",
+  "with_units": [
+    "Profile_1_Bytes_Test_Types"
+  ]
+}

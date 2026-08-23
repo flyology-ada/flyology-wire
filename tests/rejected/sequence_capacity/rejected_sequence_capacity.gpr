@@ -1,0 +1,15 @@
+with "../../../flyology_wire.gpr";
+project Rejected_Sequence_Capacity is
+   for Source_Dirs use ("src/", "../../generated/");
+   for Source_Files use
+     ("profile_1_sequence_test_types.ads",
+      "generated_profile_1_sequence_test_codec.ads",
+      "generated_profile_1_sequence_test_codec.adb");
+   for Object_Dir use "../../obj/rejected_sequence_capacity";
+   for Create_Missing_Dirs use "True";
+
+   package Compiler is
+      for Default_Switches ("Ada") use
+        ("-gnat2022", "-gnatwa", "-gnatwe", "-gnatW8", "-gnatVa", "-gnatyM110");
+   end Compiler;
+end Rejected_Sequence_Capacity;

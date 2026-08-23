@@ -1,6 +1,7 @@
 with Flyology_Wire.Compatibility;
 with Flyology_Wire.Profiles.Tagged_Profile;
 with Flyology_Wire.Sizes;
+with Interfaces;
 
 package body Profile_1_Test_Codec is
    package Compatibility renames Flyology_Wire.Compatibility;
@@ -213,7 +214,10 @@ package body Profile_1_Test_Codec is
            and then Relationship = Compatibility.Compatible
            and then Writer = Future_Schema
          then
-            null;
+            if Region.Length > 1 then
+               Status := Flyology_Wire.Codecs.Invalid_Value;
+               return;
+            end if;
          else
             Status := Flyology_Wire.Codecs.Noncanonical;
             return;

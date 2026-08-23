@@ -164,6 +164,31 @@ package body Flyology_Wire.Profiles.Tagged_Profile is
       end if;
    end Read_Boolean;
 
+   procedure Read_Octets
+     (Input  : Octet_Array;
+      Cursor : in out Read_Cursor;
+      Value  : in out Octet_Array;
+      Count  : Octet_Count;
+      Status : out Read_Status) is
+   begin
+      if Count > Remaining (Cursor) then
+         Status := Truncated;
+         return;
+      elsif Count > Value'Length then
+         Status := Destination_Too_Small;
+         return;
+      end if;
+
+      if Count > 0 then
+         for Offset in Octet_Count range 0 .. Count - 1 loop
+            Value (Value'First + Octet_Offset (Offset)) :=
+              Input (Input'First + Octet_Offset (Cursor.Next + Offset));
+         end loop;
+         Cursor.Next := Cursor.Next + Count;
+      end if;
+      Status := Read;
+   end Read_Octets;
+
    procedure Read_Length_Delimited
      (Input : Octet_Array; Cursor : in out Read_Cursor; Value : out Extent; Status : out Read_Status)
    is
@@ -322,6 +347,28 @@ package body Flyology_Wire.Profiles.Tagged_Profile is
       end if;
    end Write_Boolean;
 
+   procedure Write_Octets
+     (Output : in out Octet_Array;
+      Cursor : in out Write_Cursor;
+      Value  : Octet_Array;
+      Count  : Octet_Count;
+      Status : out Write_Status) is
+   begin
+      if Count > Remaining (Cursor) or else Count > Value'Length then
+         Status := Destination_Too_Small;
+         return;
+      end if;
+
+      if Count > 0 then
+         for Offset in Octet_Count range 0 .. Count - 1 loop
+            Output (Output'First + Octet_Offset (Cursor.Next + Offset)) :=
+              Value (Value'First + Octet_Offset (Offset));
+         end loop;
+         Cursor.Next := Cursor.Next + Count;
+      end if;
+      Status := Wrote;
+   end Write_Octets;
+
    procedure Write_Length_Delimited
      (Output       : in out Octet_Array;
       Cursor       : in out Write_Cursor;
@@ -409,9 +456,12 @@ package body Flyology_Wire.Profiles.Tagged_Profile is
    function Is_Continuation (Value : Octet) return Boolean
    is (Value in 16#80# .. 16#BF#);
 
-   procedure Validate_UTF_8 (Input : Octet_Array; Region : Extent; Status : out UTF_8_Status) is
+   procedure Validate_UTF_8
+     (Input : Octet_Array; Region : Extent; Scalar_Count : out Octet_Count; Status : out UTF_8_Status)
+   is
       Cursor        : Read_Cursor;
       Cursor_Result : Cursor_Status;
+      Count         : Octet_Count := 0;
       First         : Octet;
       Second        : Octet;
       Third         : Octet;
@@ -422,6 +472,7 @@ package body Flyology_Wire.Profiles.Tagged_Profile is
          return Take (Input, Cursor, Value);
       end Next;
    begin
+      Scalar_Count := 0;
       Initialize (Cursor, Input, Region, Cursor_Result);
       if Cursor_Result /= Cursor_Ready then
          Status := Invalid_UTF_8_Extent;
@@ -503,7 +554,15 @@ package body Flyology_Wire.Profiles.Tagged_Profile is
             Status := Invalid_UTF_8;
             return;
          end if;
+         Count := Count + 1;
       end loop;
+      Scalar_Count := Count;
       Status := Valid_UTF_8;
+   end Validate_UTF_8;
+
+   procedure Validate_UTF_8 (Input : Octet_Array; Region : Extent; Status : out UTF_8_Status) is
+      Scalar_Count : Octet_Count;
+   begin
+      Validate_UTF_8 (Input, Region, Scalar_Count, Status);
    end Validate_UTF_8;
 end Flyology_Wire.Profiles.Tagged_Profile;

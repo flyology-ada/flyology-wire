@@ -1,0 +1,32 @@
+{
+  "family_id": "53000000000000000000000000000000",
+  "fingerprint": "a0d35862c84637a22dd298936e4dde0c4021517c41dd3e538501f3ddc6c36ef8",
+  "lock_format": "flyology-wire-schema-lock",
+  "lock_version": 1,
+  "profile_id": 1,
+  "root": {
+    "fields": [
+      {
+        "default_wire": "00",
+        "presence": "defaulted",
+        "tag": 1,
+        "value": {
+          "kind": "boolean"
+        }
+      },
+      {
+        "default_wire": "00",
+        "presence": "defaulted",
+        "tag": 2,
+        "value": {
+          "kind": "unsigned",
+          "maximum": "255",
+          "minimum": "0"
+        }
+      }
+    ],
+    "kind": "record",
+    "reserved_tags": []
+  },
+  "schema_revision": 1
+}
