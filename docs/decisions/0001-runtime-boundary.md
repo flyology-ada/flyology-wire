@@ -25,9 +25,9 @@ schema revisions and profile identifiers are nonzero unsigned 32-bit values.
 an envelope encodes its identity fields individually and never copies the
 record's memory.
 
-Borrowed-view decoding is deferred. Its intended shape is a generated
-callback-scoped observation of a limited opaque view while remoting retains the
-payload lease. A freely returnable view is not part of the root contract.
+Borrowed observation is deferred. Its intended shape is a generated,
+statically bound visitor invoked while remoting retains the payload lease. A
+freely returnable or access-discriminated view is not part of the root contract.
 
 Libadalang extraction and the versioned Ada semantic IR belong to the separate
 offline `flyology_type_ir` project. Wire generation combines that IR with an
