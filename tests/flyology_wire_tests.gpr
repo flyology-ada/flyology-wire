@@ -11,6 +11,7 @@ project Flyology_Wire_Tests is
       "profile_codec_smoke.adb",
       "generated_codec_smoke.adb",
       "generated_signed_codec_smoke.adb",
+      "generated_converted_codec_smoke.adb",
       "generated_defaulted_codec_smoke.adb",
       "generated_sequence_codec_smoke.adb",
       "generated_optional_codec_smoke.adb",

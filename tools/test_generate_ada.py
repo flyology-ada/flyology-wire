@@ -18,6 +18,8 @@ BINDING = ROOT / "schema" / "fixtures" / "profile-1-record.ada-binding.json"
 GENERATED = ROOT / "tests" / "generated"
 SIGNED_SCHEMA = ROOT / "schema" / "fixtures" / "profile-1-signed-record.lock.json"
 SIGNED_BINDING = ROOT / "schema" / "fixtures" / "profile-1-signed-record.ada-binding.json"
+CONVERTED_SCHEMA = ROOT / "schema" / "fixtures" / "profile-1-converted-record.lock.json"
+CONVERTED_BINDING = ROOT / "schema" / "fixtures" / "profile-1-converted-record.ada-binding.json"
 DEFAULTED_SCHEMA = ROOT / "schema" / "fixtures" / "profile-1-defaulted-record.lock.json"
 DEFAULTED_BINDING = ROOT / "schema" / "fixtures" / "profile-1-defaulted-record.ada-binding.json"
 SEQUENCE_SCHEMA = ROOT / "schema" / "fixtures" / "profile-1-sequence-record.lock.json"
@@ -47,6 +49,7 @@ class Ada_Generator_Tests(unittest.TestCase):
         cases = (
             (SCHEMA, BINDING, [(OLDER_SCHEMA, OLDER_APPROVAL), (FUTURE_SCHEMA, FUTURE_APPROVAL)]),
             (SIGNED_SCHEMA, SIGNED_BINDING, []),
+            (CONVERTED_SCHEMA, CONVERTED_BINDING, []),
             (DEFAULTED_SCHEMA, DEFAULTED_BINDING, []),
             (SEQUENCE_SCHEMA, SEQUENCE_BINDING, []),
             (OPTIONAL_SCHEMA, OPTIONAL_BINDING, []),
@@ -206,6 +209,29 @@ class Ada_Generator_Tests(unittest.TestCase):
         self.assertIn("Profile.ZigZag_Encode (Item.Count)", body)
         self.assertIn("Profile.Write_Signed", body)
         self.assertIn("Profile.Read_Signed", body)
+
+    def test_user_defined_integer_scalars_use_explicit_checked_conversions(self) -> None:
+        schema = schema_lock.load(CONVERTED_SCHEMA)
+        binding = schema_lock.load(CONVERTED_BINDING)
+        fields = generate_ada.validate_binding(binding, schema)
+        body = generate_ada.render_body(schema, binding, fields)
+        self.assertEqual(fields[1]["conversion_type"], "Wire_Shape.Signed_16")
+        self.assertEqual(fields[2]["conversion_type"], "Wire_Shape.Unsigned_16")
+        self.assertIn("Interfaces.Integer_64 (Item.Signed)", body)
+        self.assertIn("Wire_Shape.Signed_16 (Raw_Signed)", body)
+        self.assertIn("Wire_Shape.Signed_16 (-32_768)", body)
+        self.assertIn("Wire_Shape.Unsigned_16 (65_535)", body)
+
+        binding["fields"][1]["ada_scalar"]["kind"] = "floating_type"
+        with self.assertRaisesRegex(generate_ada.Generator_Error, "integer_type"):
+            generate_ada.validate_binding(binding, schema)
+
+        binding = schema_lock.load(CONVERTED_BINDING)
+        binding["fields"][1]["ada_scalar"]["extra"] = True
+        with self.assertRaisesRegex(
+            generate_ada.Generator_Error, "must be 'interfaces_integer_64'"
+        ):
+            generate_ada.validate_binding(binding, schema)
 
     def test_sequence_binding_is_rank_one_and_uses_distinct_components(self) -> None:
         schema = schema_lock.load(SEQUENCE_SCHEMA)

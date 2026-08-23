@@ -81,7 +81,11 @@ python3 tools/generate_ada.py \
 
 The parallel `profile-1-signed-record` fixture compiles and executes the signed
 ZigZag path rather than relying only on generator-text assertions. The
-`profile-1-defaulted-record` fixture exercises an all-defaulted record whose
+`profile-1-converted-record` fixture binds the initial Type IR record shape to
+named signed and modular Ada types through explicit exact-range conversions.
+It neither serializes their in-memory representation nor derives wire bounds
+from compiler layout. The `profile-1-defaulted-record` fixture exercises an
+all-defaulted record whose
 canonical payload is empty. The `profile-1-sequence-record` fixture uses a
 definite Ada array plus explicit logical count and exercises element framing,
 capacity, and construction-lower-bound checks.

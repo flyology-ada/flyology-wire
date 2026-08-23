@@ -56,6 +56,21 @@ def require_expanded_name(value: Any, path: str) -> str:
     return value
 
 
+def validate_scalar_representation(
+    value: Any, expected: str, path: str
+) -> Optional[str]:
+    if value == expected:
+        return None
+    if expected == "boolean" or not isinstance(value, dict) or set(value) != {
+        "kind",
+        "type_name",
+    }:
+        raise Generator_Error(f"{path}: must be {expected!r}")
+    if value["kind"] != "integer_type":
+        raise Generator_Error(f"{path}.kind: must be 'integer_type'")
+    return require_expanded_name(value["type_name"], f"{path}.type_name")
+
+
 def validate_binding(binding: Any, schema: dict[str, Any]) -> list[dict[str, Any]]:
     keys = {
         "binding_format",
@@ -129,8 +144,9 @@ def validate_binding(binding: Any, schema: dict[str, Any]) -> list[dict[str, Any
                 field_keys.add("ada_present_component")
             if set(field_binding) != field_keys:
                 raise Generator_Error(f"{path}: has incorrect closed scalar keys")
-            if field_binding["ada_scalar"] != expected_scalar:
-                raise Generator_Error(f"{path}.ada_scalar: must be {expected_scalar!r}")
+            conversion_type = validate_scalar_representation(
+                field_binding["ada_scalar"], expected_scalar, f"{path}.ada_scalar"
+            )
             component = require_identifier(field_binding["ada_component"], f"{path}.ada_component")
             if component.lower() in seen_components:
                 raise Generator_Error(f"{path}.ada_component: duplicates another component")
@@ -159,6 +175,7 @@ def validate_binding(binding: Any, schema: dict[str, Any]) -> list[dict[str, Any
                     "present_component": present_component,
                     "schema": schema_field,
                     "scalar": expected_scalar,
+                    "conversion_type": conversion_type,
                 }
             )
             continue
@@ -467,6 +484,13 @@ def validate_binding(binding: Any, schema: dict[str, Any]) -> list[dict[str, Any
         ):
             raise Generator_Error(
                 "$.fields: every byte field must opt into the generated borrowed observer"
+            )
+        if any(
+            field["kind"] == "scalar" and field["conversion_type"] is not None
+            for field in result
+        ):
+            raise Generator_Error(
+                "$.fields: the initial borrowed observer requires exact scalar representations"
             )
     return result
 
@@ -824,7 +848,39 @@ def render_spec(
 
 
 def size_expression(field: dict[str, Any]) -> str:
-    return scalar_size_expression(field["schema"]["value"], f"Item.{field['component']}")
+    return scalar_size_expression(
+        field["schema"]["value"], scalar_wire_expression(field, f"Item.{field['component']}")
+    )
+
+
+def size_argument_lines(field: dict[str, Any], indent: str) -> list[str]:
+    expression = size_expression(field)
+    if field.get("conversion_type") is None:
+        return [f"{indent}{expression},"]
+    prefix = "Flyology_Wire.Byte_Count ("
+    if not expression.startswith(prefix) or not expression.endswith(")"):
+        raise Generator_Error("internal error: converted scalar size expression is malformed")
+    return [
+        f"{indent}Flyology_Wire.Byte_Count",
+        f"{indent}  ({expression[len(prefix) : -1]}),",
+    ]
+
+
+def scalar_wire_expression(field: dict[str, Any], expression: str) -> str:
+    conversion_type = field.get("conversion_type")
+    if conversion_type is None:
+        return expression
+    target = (
+        "Interfaces.Unsigned_64"
+        if field["schema"]["value"]["kind"] == "unsigned"
+        else "Interfaces.Integer_64"
+    )
+    return f"{target} ({expression})"
+
+
+def interface_scalar_bounds(kind: str) -> tuple[tuple[str, str], tuple[str, str]]:
+    type_name = "Interfaces.Unsigned_64" if kind == "unsigned" else "Interfaces.Integer_64"
+    return (("First", f"{type_name}'First"), ("Last", f"{type_name}'Last"))
 
 
 def scalar_size_expression(value: dict[str, Any], expression: str) -> str:
@@ -868,7 +924,9 @@ def scalar_invalid_expression(value: dict[str, Any], expression: str) -> Optiona
 
 def write_call(field: dict[str, Any]) -> str:
     return scalar_write_call(
-        field["schema"]["value"], f"Item.{field['component']}", "Nested"
+        field["schema"]["value"],
+        scalar_wire_expression(field, f"Item.{field['component']}"),
+        "Nested",
     )
 
 
@@ -1741,6 +1799,15 @@ def render_body(
         field["kind"] != "enumeration" for field in fields
     ):
         lines.append("   use type Interfaces.Unsigned_64;")
+    conversion_types = sorted(
+        {
+            field["conversion_type"]
+            for field in fields
+            if field["kind"] == "scalar" and field["conversion_type"] is not None
+        },
+        key=str.lower,
+    )
+    lines.extend(f"   use type {conversion_type};" for conversion_type in conversion_types)
     if any(field["kind"] == "text" for field in fields):
         lines.append("   use type Profile.UTF_8_Status;")
     lines.extend(
@@ -1798,7 +1865,38 @@ def render_body(
             kind = field["schema"]["value"]["kind"]
             if kind == "boolean":
                 continue
-            checks = [(component, kind)]
+            if field["conversion_type"] is None:
+                checks = [(component, interface_scalar_bounds(kind))]
+            else:
+                value = field["schema"]["value"]
+                conversion_type = field["conversion_type"]
+                minimum = ada_integer(value["minimum"])
+                maximum = ada_integer(value["maximum"])
+                lines.extend(
+                    [
+                        "",
+                        "   pragma",
+                        "     Compile_Time_Error",
+                        f"       ({conversion_type}'First /= {minimum}",
+                        f"          or else {conversion_type}'Last /= {maximum},",
+                        f'        "{component} application type differs from its wire-schema range");',
+                    ]
+                )
+                checks = [
+                    (
+                        component,
+                        (
+                            (
+                                "Minimum",
+                                f"{conversion_type} ({minimum})",
+                            ),
+                            (
+                                "Maximum",
+                                f"{conversion_type} ({maximum})",
+                            ),
+                        ),
+                    )
+                ]
         elif field["kind"] == "enumeration":
             checks = []
             for literal in field["literals"]:
@@ -1813,7 +1911,7 @@ def render_body(
                 )
                 lines.append(f"   pragma Unreferenced ({check_name});")
         elif field["kind"] in {"bytes", "text"}:
-            checks = [(field["length_component"], "unsigned")]
+            checks = [(field["length_component"], interface_scalar_bounds("unsigned"))]
             maximum = ada_integer(field["schema"]["value"]["maximum_octets"])
             lower = ada_integer(field["schema"]["value"]["construction_lower_bound"])
             capacity_name = f"{component}_Capacity_Binding_Check"
@@ -1833,9 +1931,9 @@ def render_body(
             )
         else:
             element_kind = field["schema"]["value"]["element"]["kind"]
-            checks = [(field["length_component"], "unsigned")]
+            checks = [(field["length_component"], interface_scalar_bounds("unsigned"))]
             if element_kind != "boolean":
-                checks.append((component, element_kind))
+                checks.append((component, interface_scalar_bounds(element_kind)))
             maximum = ada_integer(
                 field["schema"]["value"]["dimensions"][0]["maximum_count"]
             )
@@ -1857,12 +1955,10 @@ def render_body(
                     f'        "{component} lower bound differs from its wire construction bound");',
                 ]
             )
-        for checked_component, kind in checks:
-            type_name = "Interfaces.Unsigned_64" if kind == "unsigned" else "Interfaces.Integer_64"
-            for bound in ("First", "Last"):
+        for checked_component, bounds in checks:
+            for bound, value in bounds:
                 lines.append("")
                 check_name = f"{checked_component}_{bound}_Binding_Check"
-                value = f"{type_name}'{bound}"
                 if field["kind"] == "sequence" and checked_component == component:
                     value = f"[others => {value}]"
                 append_value(
@@ -2000,6 +2096,8 @@ def render_body(
             continue
         if field["kind"] != "scalar":
             continue
+        if field["conversion_type"] is not None:
+            continue
         expression = invalid_expression(field, f"Item.{field['component']}")
         if expression is None:
             continue
@@ -2056,7 +2154,7 @@ def render_body(
             call = [
                 "Profile.Measure_Field",
                 f"  ({field['component']}_Tag,",
-                f"   {size_expression(field)},",
+                *size_argument_lines(field, "   "),
                 "   Field_Size,",
                 "   Arithmetic);",
             ]
@@ -2213,7 +2311,7 @@ def render_body(
                 "         Writer,",
                 "         Previous,",
                 f"         {field['component']}_Tag,",
-                f"         {size_expression(field)},",
+                *size_argument_lines(field, "         "),
                 "         Region,",
                 "         Write_Result);",
                 "      if Write_Result /= Profile.Wrote then",
@@ -2553,9 +2651,10 @@ def render_body(
                     ]
                 )
             if kind != "boolean":
-                lines.append(
-                    f"            Candidate.{field['component']} := Raw_{field['component']};"
-                )
+                value = f"Raw_{field['component']}"
+                if field["conversion_type"] is not None:
+                    value = f"{field['conversion_type']} ({value})"
+                lines.append(f"            Candidate.{field['component']} := {value};")
             if field["present_component"] is not None:
                 lines.append(f"            Candidate.{field['present_component']} := True;")
         elif field["kind"] == "enumeration":

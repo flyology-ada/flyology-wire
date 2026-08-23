@@ -1,0 +1,33 @@
+{
+  "binding_format": "flyology-wire-ada-binding",
+  "binding_version": 1,
+  "fields": [
+    {
+      "ada_component": "Enabled",
+      "ada_scalar": "boolean",
+      "tag": 1
+    },
+    {
+      "ada_component": "Signed",
+      "ada_scalar": {
+        "kind": "integer_type",
+        "type_name": "Wire_Shape.Signed_16"
+      },
+      "tag": 2
+    },
+    {
+      "ada_component": "Unsigned",
+      "ada_scalar": {
+        "kind": "integer_type",
+        "type_name": "Wire_Shape.Unsigned_16"
+      },
+      "tag": 3
+    }
+  ],
+  "package_name": "Generated_Profile_1_Converted_Test_Codec",
+  "schema_fingerprint": "e22a7c3cfffe460e9d1b8c8288bf2794e79a3f9ff52dc3d6558bafcae1dc6cc1",
+  "value_type": "Wire_Shape.Public_Record",
+  "with_units": [
+    "Wire_Shape"
+  ]
+}

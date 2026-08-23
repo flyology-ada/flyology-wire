@@ -36,3 +36,6 @@ check_rejected \
 check_rejected \
   "$crate_root/tests/rejected/bytes_lower_bound/rejected_bytes_lower_bound.gpr" \
   "Data lower bound differs from its wire construction bound"
+check_rejected \
+  "$crate_root/tests/rejected/converted_range/rejected_converted_range.gpr" \
+  "Signed application type differs from its wire-schema range"

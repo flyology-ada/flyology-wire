@@ -24,6 +24,11 @@ python3 "$crate_root/tools/generate_ada.py" \
   "$crate_root/tests/generated"
 python3 "$crate_root/tools/generate_ada.py" \
   --check \
+  "$crate_root/schema/fixtures/profile-1-converted-record.lock.json" \
+  "$crate_root/schema/fixtures/profile-1-converted-record.ada-binding.json" \
+  "$crate_root/tests/generated"
+python3 "$crate_root/tools/generate_ada.py" \
+  --check \
   "$crate_root/schema/fixtures/profile-1-defaulted-record.lock.json" \
   "$crate_root/schema/fixtures/profile-1-defaulted-record.ada-binding.json" \
   "$crate_root/tests/generated"
@@ -74,6 +79,7 @@ fi
 "$crate_root/tests/bin/profile_codec_smoke"
 "$crate_root/tests/bin/generated_codec_smoke"
 "$crate_root/tests/bin/generated_signed_codec_smoke"
+"$crate_root/tests/bin/generated_converted_codec_smoke"
 "$crate_root/tests/bin/generated_defaulted_codec_smoke"
 "$crate_root/tests/bin/generated_sequence_codec_smoke"
 "$crate_root/tests/bin/generated_optional_codec_smoke"
