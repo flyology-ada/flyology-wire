@@ -24,6 +24,13 @@ is
 
    type Cursor_Status is (Cursor_Ready, Invalid_Extent);
 
+   --  Validate Region and lend its exact slice only for the duration of the
+   --  statically bound callback. An empty region is lent as a canonical null
+   --  slice. The callback is not invoked for an invalid extent.
+   generic
+      with procedure Visit (Value : Octet_Array);
+   procedure Visit_Extent (Input : Octet_Array; Region : Extent; Status : out Cursor_Status);
+
    type Read_Cursor is private;
 
    procedure Initialize (Cursor : out Read_Cursor; Input : Octet_Array);

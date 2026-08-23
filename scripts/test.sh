@@ -15,3 +15,4 @@ fi
 "$crate_root/tests/bin/tagged_smoke"
 "$crate_root/tests/bin/compatibility_smoke"
 "$crate_root/tests/bin/profile_codec_smoke"
+"$crate_root/tests/bin/borrowed_observer_smoke"

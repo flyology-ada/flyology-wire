@@ -61,6 +61,21 @@ procedure Tagged_Smoke is
       Assert (Result = Expected, "UTF-8 validation returned the wrong status");
    end Check_UTF_8;
 
+   Lent_Calls  : Natural := 0;
+   Lent_Length : Wire.Octet_Count := 0;
+   Lent_First  : Wire.Octet := 0;
+
+   procedure Record_Extent (Value : Wire.Octet_Array) is
+   begin
+      Lent_Calls := Lent_Calls + 1;
+      Lent_Length := Value'Length;
+      if Value'Length > 0 then
+         Lent_First := Value (Value'First);
+      end if;
+   end Record_Extent;
+
+   procedure Lend_Extent is new Profile.Visit_Extent (Record_Extent);
+
    Output           : Wire.Octet_Array (20 .. 29) := [others => 16#CC#];
    Output_Before    : constant Wire.Octet_Array := Output;
    Small            : Wire.Octet_Array (1 .. 1) := [others => 16#DD#];
@@ -84,8 +99,28 @@ procedure Tagged_Smoke is
    Ordered_Record   : Wire.Octet_Array (20 .. 26) := [others => 16#CC#];
    Long_Output      : Wire.Octet_Array (30 .. 159) := [others => 16#CC#];
    Empty_Text       : constant Wire.Octet_Array (1 .. 0) := [others => 0];
+   Extreme_Input    :
+     constant Wire.Octet_Array
+                (Ada.Streams.Stream_Element_Offset'First .. Ada.Streams.Stream_Element_Offset'First) :=
+       [others => 42];
    UTF_8_Result     : Profile.UTF_8_Status;
 begin
+   Lend_Extent (Extreme_Input, Profile.Empty_Extent, Cursor_Result);
+   Assert
+     (Cursor_Result = Profile.Cursor_Ready and then Lent_Calls = 1 and then Lent_Length = 0,
+      "empty extent was not lent safely at the index type boundary");
+   Output (22) := 16#A5#;
+   Lend_Extent (Output, (Start => 2, Length => 1), Cursor_Result);
+   Assert
+     (Cursor_Result = Profile.Cursor_Ready
+      and then Lent_Calls = 2
+      and then Lent_Length = 1
+      and then Lent_First = 16#A5#,
+      "nonempty extent did not lend the selected caller storage");
+   Lend_Extent (Output, (Start => Output'Length, Length => 1), Cursor_Result);
+   Assert
+     (Cursor_Result = Profile.Invalid_Extent and then Lent_Calls = 2, "invalid extent invoked its callback");
+
    Check_Unsigned (0, [0 => 0]);
    Check_Unsigned (1, [0 => 1]);
    Check_Unsigned (127, [0 => 16#7F#]);

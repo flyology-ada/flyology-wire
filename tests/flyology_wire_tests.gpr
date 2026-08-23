@@ -8,7 +8,8 @@ project Flyology_Wire_Tests is
      ("wire_smoke.adb",
       "tagged_smoke.adb",
       "compatibility_smoke.adb",
-      "profile_codec_smoke.adb");
+      "profile_codec_smoke.adb",
+      "borrowed_observer_smoke.adb");
 
    package Compiler is
       for Default_Switches ("Ada") use

@@ -35,6 +35,12 @@ raised by application visitor code propagates; wire does not misclassify it as
 malformed input. Remoting retains the lease across normal return and exception
 unwinding.
 
+The caller keeps the input bytes stable from the start of validation through
+the final callback return. Remoting satisfies this with its readable payload
+lease. A direct caller must not retain a writable alias that application
+visitor code can use to mutate the payload between the validation and
+observation passes.
+
 The ordinary `Decode` operation remains the construction contract. It builds
 an unpublished candidate and commits only on success. Borrowed observation is
 an additional generated capability, not a replacement codec abstraction in

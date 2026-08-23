@@ -6,6 +6,23 @@ package body Flyology_Wire.Profiles.Tagged_Profile is
    use type Octet_Count;
    use type Sizes.Arithmetic_Status;
 
+   procedure Visit_Extent (Input : Octet_Array; Region : Extent; Status : out Cursor_Status) is
+      First : Octet_Offset;
+      Last  : Octet_Offset;
+   begin
+      if Region.Start > Input'Length or else Region.Length > Input'Length - Region.Start then
+         Status := Invalid_Extent;
+      elsif Region.Length = 0 then
+         Status := Cursor_Ready;
+         Visit (Input (1 .. 0));
+      else
+         First := Input'First + Octet_Offset (Region.Start);
+         Last := First + Octet_Offset (Region.Length - 1);
+         Status := Cursor_Ready;
+         Visit (Input (First .. Last));
+      end if;
+   end Visit_Extent;
+
    procedure Initialize (Cursor : out Read_Cursor; Input : Octet_Array) is
    begin
       Cursor := (First => 0, Next => 0, Limit => Input'Length);
