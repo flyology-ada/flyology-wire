@@ -1,0 +1,41 @@
+{
+  "family_id": "58000000000000000000000000000000",
+  "fields": [
+    {
+      "component_id": "decl:wire_shape.public_record.enabled#public",
+      "presence": "required",
+      "tag": 1,
+      "value": {
+        "kind": "boolean"
+      }
+    },
+    {
+      "component_id": "decl:wire_shape.public_record.signed#public",
+      "presence": "required",
+      "tag": 2,
+      "value": {
+        "kind": "signed",
+        "maximum": "32767",
+        "minimum": "-32768"
+      }
+    },
+    {
+      "component_id": "decl:wire_shape.public_record.unsigned#public",
+      "presence": "required",
+      "tag": 3,
+      "value": {
+        "kind": "unsigned",
+        "maximum": "65535",
+        "minimum": "0"
+      }
+    }
+  ],
+  "overlay_format": "flyology-wire-type-ir-overlay",
+  "overlay_version": 1,
+  "package_name": "Generated_Profile_1_Converted_Test_Codec",
+  "profile_id": 1,
+  "reserved_tags": [],
+  "root_declaration_id": "decl:wire_shape.public_record#public",
+  "schema_revision": 1,
+  "type_ir_semantic_fingerprint": "e5f5da08e77e057960fe9ab987b3400e5557a017ae62fcdaa8d4e376042d7f76"
+}

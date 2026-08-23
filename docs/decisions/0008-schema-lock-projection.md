@@ -57,9 +57,8 @@ The schema-lock builder receives a validated, closed structural adapter rather
 than Libadalang nodes or raw Type IR JSON. The adapter must provide resolved
 declarations, views, generic actuals, use-site constraints, exact variants, and
 typed constants, and must prove that required consumer features were accepted.
-The eventual Type IR reader may implement that adapter only after Type IR
-publishes its reviewed schema, fixtures, features, and Strict Consumer entry
-point.
+Decision 0023 implements that seam against the reviewed Type IR v1 checker,
+schema, fixture, feature set, and same-read `CheckedDocument` entry point.
 
 ## Consequences
 

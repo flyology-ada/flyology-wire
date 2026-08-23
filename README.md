@@ -15,15 +15,17 @@ lender supports generated two-pass borrowed observers without returning a
 view or retaining an access value. The repository also contains the closed
 Profile 1 schema-lock format, offline fingerprint validator, directional
 compatibility diff, and exact compatibility-approval format. Ada-source
-derivation through the shared Type IR remains an offline addition. The initial
-deterministic Ada backend generates
-a codec for nonempty records containing required/defaulted/optional scalar
-fields, required bounded byte/UTF-8 text fields, required enumerations, or
-required one-dimensional bounded scalar sequences from a checked binding
-manifest. The first variant backend binds a sole required root field to an
-application-owned selector and required scalar alternative records. A requested
-generated two-pass visitor validates the complete payload before lending byte
-or UTF-8 extents in the caller's original storage. Exact writer locks and
+structure now enters through an attested offline adapter for the reviewed Type
+IR v1 consumer API. Production extraction remains fail-closed because the
+current pinned extractor intentionally emits no IR. The initial deterministic
+Ada backend generates a codec for nonempty records containing
+required/defaulted/optional scalar fields, required bounded byte/UTF-8 text
+fields, required enumerations, or required one-dimensional bounded scalar
+sequences from a checked binding manifest. The first variant backend binds a
+sole required root field to an application-owned selector and required scalar
+alternative records. A requested generated two-pass visitor validates the
+complete payload before lending byte or UTF-8 extents in the caller's original
+storage. Exact writer locks and
 reviewed directional approvals optionally generate bounded compatibility
 branches.
 Libadalang is a build-tool dependency of the shared `flyology_type_ir`
@@ -44,7 +46,9 @@ tests/bin/wire_smoke
 Run the schema-lock checks and every Ada smoke program with:
 
 ```sh
-./scripts/test.sh
+git clone https://github.com/flyology-ada/flyology-type-ir.git ../flyology-type-ir
+git -C ../flyology-type-ir checkout 78e6726a80d02b22f573fed3f65538cafd89fc0d
+FLYOLOGY_TYPE_IR_ROOT=$PWD/../flyology-type-ir ./scripts/test.sh
 ```
 
 The schema-lock and compatibility tools use only Python 3's standard library
@@ -52,6 +56,23 @@ and are not Alire or runtime dependencies. Decision 0008 defines the semantic
 fingerprint projection; the committed fixtures under `schema/fixtures/`
 fingerprint the same three writer identities used by the end-to-end Profile 1
 codec test.
+
+The Type IR adapter verifies the reviewed checker and schema content digests
+before importing `load_checked(path, profile)`. Its production default is
+`strict`; this test-only command proves the complete Type IR fixture to
+schema-lock and Ada-binding path:
+
+```sh
+python3 tools/type_ir_adapter.py \
+  --fixture-shape \
+  --check \
+  ../flyology-type-ir \
+  ../flyology-type-ir/fixtures/wire-record-shape.json \
+  schema/fixtures/wire-record-shape.overlay.json \
+  schema/fixtures/profile-1-converted-record.lock.json \
+  schema/fixtures/profile-1-converted-record.ada-binding.json \
+  schema/fixtures/profile-1-converted-record.provenance.json
+```
 
 Regenerate or verify the initial Ada fixture with:
 

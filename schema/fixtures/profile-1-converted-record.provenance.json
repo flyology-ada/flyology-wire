@@ -1,0 +1,12 @@
+{
+  "checker_sha256": "b2fdca4cd44c6d64a62ce0e60dd14eac049b0dac29e03bceed9232a2603a1ad2",
+  "consumer_format": "flyology-wire-type-ir-provenance",
+  "consumer_version": 1,
+  "overlay_sha256": "14e0d030aaf32a8341b6cc06a2dec09fa2bc9672498dd41b0613a60f85e1c6f1",
+  "type_ir_commit": "78e6726a80d02b22f573fed3f65538cafd89fc0d",
+  "type_ir_profile": "fixture_shape",
+  "type_ir_schema_sha256": "1318d40affd3a7316f79ea3ec61eada70265942bfa41fb2b6ea0f8357348bf49",
+  "type_ir_semantic_fingerprint": "e5f5da08e77e057960fe9ab987b3400e5557a017ae62fcdaa8d4e376042d7f76",
+  "type_ir_source_sha256": "92aa85c19c3d0dcfd531f42b75743559efd4f80919942a9acce5f5e15d323c4a",
+  "wire_schema_fingerprint": "e22a7c3cfffe460e9d1b8c8288bf2794e79a3f9ff52dc3d6558bafcae1dc6cc1"
+}

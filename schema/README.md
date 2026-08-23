@@ -27,9 +27,11 @@ fingerprint. It does not update a file in place.
 
 The fixture is intentionally free of Ada names and Type IR identifiers. It
 describes the same family, revision, profile, fields, fingerprint, and 15-byte
-maximum as `Profile_1_Test_Codec`. The eventual generator will produce this
-semantic lock only after a separate adapter has accepted checked Type IR and a
-closed wire overlay.
+maximum as `Profile_1_Test_Codec`. The attested adapter in
+`tools/type_ir_adapter.py` now produces the converted-record lock and Ada
+binding from the reviewed Type IR fixture plus a closed wire overlay. Its
+production profile remains fail-closed until the pinned extractor can produce
+a Strict Consumer document.
 
 `schema_diff.py` compares a complete writer lock to a reader lock. It emits a
 deterministic directional report, rejects structural incompatibilities, and
@@ -59,8 +61,8 @@ python3 tools/schema_diff.py --evolution \
 The `.ada-binding.json` fixture is generator binding data, not wire semantics.
 It binds the exact lock fingerprint and every root field tag to checked Ada
 names and one supported scalar representation. It is excluded from the schema
-fingerprint and does not replace the wire overlay or the future Type IR
-adapter. Decision 0011 records this boundary.
+fingerprint and does not replace the wire overlay or Type IR adapter. Decisions
+0011 and 0023 record this boundary.
 
 The parallel signed and all-defaulted fixtures compile generator paths that the
 main compatibility fixture does not exercise. Default values come only from

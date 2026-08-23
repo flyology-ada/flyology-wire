@@ -59,11 +59,11 @@ and descriptor-for-descriptor with the reviewed handwritten codec.
 
 ## Type IR seam
 
-The current fixture manifest is manually reviewed test input. It is not a
-general substitute for structural extraction. After Type IR publishes a
-reviewed v1, the strict wire adapter will prove component identity, views,
-generic bindings, constraints, and scalar compatibility before constructing
-this binding model. The Ada legality build remains a required final gate.
+The original fixture manifest is manually reviewed test input. It is not a
+general substitute for structural extraction. Decision 0023's reviewed Type IR
+adapter now proves component identity, views, constraints, and scalar
+compatibility for the first public record shape before constructing this same
+binding model. The Ada legality build remains a required final gate.
 
 No Libadalang, Type IR, JSON, generator, or binding type enters the generated
 codec's runtime dependency closure.
@@ -75,7 +75,7 @@ codec's runtime dependency closure.
 - This initial slice is intentionally not called complete Profile 1
   derivation. Decisions 0012 through 0021 subsequently add the reviewed
   compatibility, defaulted/optional, bounded-container, observer, text, enum,
-  and initial variant slices. Their documented restrictions and the Type IR
-  adapter remain explicit completion boundaries.
+  and initial variant slices. Decision 0023 adds the first Type IR lowering;
+  its documented restrictions remain explicit completion boundaries.
 - Handwritten adapters continue to satisfy the same static runtime contract;
   the generator does not introduce a second remoting codec abstraction.

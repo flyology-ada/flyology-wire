@@ -1,6 +1,6 @@
 # Decision 0009: Wire overlay and generation pipeline
 
-Status: accepted architecture; Type IR adapter pending its reviewed v1
+Status: accepted architecture; initial Type IR adapter implemented
 
 Date: 2026-08-23
 
@@ -117,9 +117,11 @@ The first generated fixture is one named definite record containing required
 Boolean and signed/unsigned 64-bit fields. It reproduces the committed schema
 lock, descriptor, maximum, canonical bytes, and exact-schema failure behavior
 now exercised beside `Profile_1_Test_Codec`. Decision 0011 records the narrow
-checked binding used before Type IR v1 is available. Subsequent decisions 0012
+checked binding used before Type IR v1 was available. Subsequent decisions 0012
 through 0021 add reviewed compatibility edges, defaults, bounded sequences,
 optionals, raw bytes, borrowed observation, UTF-8, enumerations, and an initial
-explicit-selector variant lowering. Complete Profile 1 derivation is still not
-claimed: their fail-closed restrictions remain part of the generator contract,
-and Ada-source derivation remains gated on the reviewed Type IR adapter.
+explicit-selector variant lowering. Decision 0022 admits exact-range named Ada
+integers, and decision 0023 implements the first attested Type IR record
+lowering. Complete Profile 1 derivation is still not claimed: all documented
+fail-closed restrictions remain part of the generator contract, and production
+source extraction intentionally remains gated.

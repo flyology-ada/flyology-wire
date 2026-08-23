@@ -2,10 +2,26 @@
 set -eu
 
 crate_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+type_ir_root=${FLYOLOGY_TYPE_IR_ROOT:-}
+
+if [ -z "$type_ir_root" ] || [ ! -d "$type_ir_root" ]; then
+  echo "FLYOLOGY_TYPE_IR_ROOT must name the reviewed flyology-type-ir checkout" >&2
+  exit 1
+fi
 
 python3 "$crate_root/tools/test_schema_lock.py"
 python3 "$crate_root/tools/test_schema_diff.py"
 python3 "$crate_root/tools/test_generate_ada.py"
+python3 "$crate_root/tools/test_type_ir_adapter.py"
+python3 "$crate_root/tools/type_ir_adapter.py" \
+  --fixture-shape \
+  --check \
+  "$type_ir_root" \
+  "$type_ir_root/fixtures/wire-record-shape.json" \
+  "$crate_root/schema/fixtures/wire-record-shape.overlay.json" \
+  "$crate_root/schema/fixtures/profile-1-converted-record.lock.json" \
+  "$crate_root/schema/fixtures/profile-1-converted-record.ada-binding.json" \
+  "$crate_root/schema/fixtures/profile-1-converted-record.provenance.json"
 python3 "$crate_root/tools/generate_ada.py" \
   --check \
   --compatible-writer \
