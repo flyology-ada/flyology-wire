@@ -147,6 +147,27 @@ package body Flyology_Wire.Profiles.Tagged_Profile is
       end if;
    end Read_Boolean;
 
+   procedure Read_Length_Delimited
+     (Input : Octet_Array; Cursor : in out Read_Cursor; Value : out Extent; Status : out Read_Status)
+   is
+      Candidate : Read_Cursor := Cursor;
+      Length    : Interfaces.Unsigned_64;
+   begin
+      Value := Empty_Extent;
+      Read_Unsigned (Input, Candidate, Length, Status);
+      if Status /= Read then
+         return;
+      elsif Length > Interfaces.Unsigned_64 (Remaining (Candidate)) then
+         Status := Extent_Outside_Container;
+         return;
+      end if;
+
+      Value := (Start => Candidate.Next, Length => Octet_Count (Length));
+      Candidate.Next := Candidate.Next + Value.Length;
+      Cursor := Candidate;
+      Status := Read;
+   end Read_Length_Delimited;
+
    procedure Read_Field_Header
      (Input    : Octet_Array;
       Cursor   : in out Read_Cursor;
@@ -284,6 +305,31 @@ package body Flyology_Wire.Profiles.Tagged_Profile is
       end if;
    end Write_Boolean;
 
+   procedure Write_Length_Delimited
+     (Output       : in out Octet_Array;
+      Cursor       : in out Write_Cursor;
+      Value_Length : Byte_Count;
+      Value        : out Extent;
+      Status       : out Write_Status)
+   is
+      Length_Size : constant Varint_Length := Unsigned_Size (Interfaces.Unsigned_64 (Value_Length));
+      Candidate   : Write_Cursor := Cursor;
+   begin
+      Value := Empty_Extent;
+      if not Is_Valid (Candidate, Output'Length)
+        or else Length_Size > Remaining (Candidate)
+        or else Value_Length > Byte_Count (Remaining (Candidate) - Length_Size)
+      then
+         Status := Destination_Too_Small;
+      else
+         Put_Unsigned (Output, Candidate, Interfaces.Unsigned_64 (Value_Length));
+         Value := (Start => Candidate.Next, Length => Octet_Count (Value_Length));
+         Candidate.Next := Candidate.Next + Value.Length;
+         Cursor := Candidate;
+         Status := Wrote;
+      end if;
+   end Write_Length_Delimited;
+
    procedure Write_Field_Header
      (Output       : in out Octet_Array;
       Cursor       : in out Write_Cursor;
@@ -332,4 +378,115 @@ package body Flyology_Wire.Profiles.Tagged_Profile is
          Size := 0;
       end if;
    end Measure_Field;
+
+   procedure Measure_Length_Delimited
+     (Value_Length : Byte_Count; Size : out Byte_Count; Status : out Sizes.Arithmetic_Status) is
+   begin
+      Size := Value_Length;
+      Sizes.Accumulate (Size, Byte_Count (Unsigned_Size (Interfaces.Unsigned_64 (Value_Length))), Status);
+      if Status = Sizes.Overflow then
+         Size := 0;
+      end if;
+   end Measure_Length_Delimited;
+
+   function Is_Continuation (Value : Octet) return Boolean
+   is (Value in 16#80# .. 16#BF#);
+
+   procedure Validate_UTF_8 (Input : Octet_Array; Region : Extent; Status : out UTF_8_Status) is
+      Cursor        : Read_Cursor;
+      Cursor_Result : Cursor_Status;
+      First         : Octet;
+      Second        : Octet;
+      Third         : Octet;
+      Fourth        : Octet;
+
+      function Next (Value : out Octet) return Boolean is
+      begin
+         return Take (Input, Cursor, Value);
+      end Next;
+   begin
+      Initialize (Cursor, Input, Region, Cursor_Result);
+      if Cursor_Result /= Cursor_Ready then
+         Status := Invalid_UTF_8_Extent;
+         return;
+      end if;
+
+      while not At_End (Cursor) loop
+         if not Next (First) then
+            Status := Invalid_UTF_8;
+            return;
+         elsif First <= 16#7F# then
+            null;
+         elsif First in 16#C2# .. 16#DF# then
+            if not Next (Second) or else not Is_Continuation (Second) then
+               Status := Invalid_UTF_8;
+               return;
+            end if;
+         elsif First = 16#E0# then
+            if not Next (Second)
+              or else Second not in 16#A0# .. 16#BF#
+              or else not Next (Third)
+              or else not Is_Continuation (Third)
+            then
+               Status := Invalid_UTF_8;
+               return;
+            end if;
+         elsif First in 16#E1# .. 16#EC# or else First in 16#EE# .. 16#EF# then
+            if not Next (Second)
+              or else not Is_Continuation (Second)
+              or else not Next (Third)
+              or else not Is_Continuation (Third)
+            then
+               Status := Invalid_UTF_8;
+               return;
+            end if;
+         elsif First = 16#ED# then
+            if not Next (Second)
+              or else Second not in 16#80# .. 16#9F#
+              or else not Next (Third)
+              or else not Is_Continuation (Third)
+            then
+               Status := Invalid_UTF_8;
+               return;
+            end if;
+         elsif First = 16#F0# then
+            if not Next (Second)
+              or else Second not in 16#90# .. 16#BF#
+              or else not Next (Third)
+              or else not Is_Continuation (Third)
+              or else not Next (Fourth)
+              or else not Is_Continuation (Fourth)
+            then
+               Status := Invalid_UTF_8;
+               return;
+            end if;
+         elsif First in 16#F1# .. 16#F3# then
+            if not Next (Second)
+              or else not Is_Continuation (Second)
+              or else not Next (Third)
+              or else not Is_Continuation (Third)
+              or else not Next (Fourth)
+              or else not Is_Continuation (Fourth)
+            then
+               Status := Invalid_UTF_8;
+               return;
+            end if;
+         elsif First = 16#F4# then
+            if not Next (Second)
+              or else Second not in 16#80# .. 16#8F#
+              or else not Next (Third)
+              or else not Is_Continuation (Third)
+              or else not Next (Fourth)
+              or else not Is_Continuation (Fourth)
+            then
+               Status := Invalid_UTF_8;
+               return;
+            end if;
+         else
+            Status := Invalid_UTF_8;
+            return;
+         end if;
+      end loop;
+      Status := Valid_UTF_8;
+   end Validate_UTF_8;
 end Flyology_Wire.Profiles.Tagged_Profile;

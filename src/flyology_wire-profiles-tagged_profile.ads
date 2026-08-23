@@ -60,6 +60,11 @@ is
    procedure Read_Boolean
      (Input : Octet_Array; Cursor : in out Read_Cursor; Value : out Boolean; Status : out Read_Status);
 
+   --  Read a shortest-varint length and reserve exactly that many octets.
+   --  Cursor remains unchanged on failure.
+   procedure Read_Length_Delimited
+     (Input : Octet_Array; Cursor : in out Read_Cursor; Value : out Extent; Status : out Read_Status);
+
    --  Read one strictly increasing field header and reserve its complete value
    --  extent. Cursor and Previous remain unchanged on failure.
    procedure Read_Field_Header
@@ -100,6 +105,15 @@ is
    procedure Write_Boolean
      (Output : in out Octet_Array; Cursor : in out Write_Cursor; Value : Boolean; Status : out Write_Status);
 
+   --  Write a shortest-varint length, reserve the value extent, and advance
+   --  Cursor past it. Output and Cursor remain unchanged on failure.
+   procedure Write_Length_Delimited
+     (Output       : in out Octet_Array;
+      Cursor       : in out Write_Cursor;
+      Value_Length : Byte_Count;
+      Value        : out Extent;
+      Status       : out Write_Status);
+
    --  Write one strictly increasing field header, reserve its complete value
    --  extent, and advance Cursor past that value. The caller initializes a
    --  nested writer over Value and fills it after successful preflight.
@@ -117,6 +131,15 @@ is
       Value_Length : Byte_Count;
       Size         : out Byte_Count;
       Status       : out Sizes.Arithmetic_Status);
+
+   procedure Measure_Length_Delimited
+     (Value_Length : Byte_Count; Size : out Byte_Count; Status : out Sizes.Arithmetic_Status);
+
+   type UTF_8_Status is (Valid_UTF_8, Invalid_UTF_8, Invalid_UTF_8_Extent);
+
+   --  Validate one complete extent as shortest-form Unicode UTF-8, excluding
+   --  surrogate code points and values above U+10FFFF.
+   procedure Validate_UTF_8 (Input : Octet_Array; Region : Extent; Status : out UTF_8_Status);
 
    function ZigZag_Encode (Value : Interfaces.Integer_64) return Interfaces.Unsigned_64;
    function ZigZag_Decode (Value : Interfaces.Unsigned_64) return Interfaces.Integer_64;

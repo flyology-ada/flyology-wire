@@ -16,8 +16,10 @@ procedure Tagged_Smoke is
    use type Profile.Extent;
    use type Profile.Read_Status;
    use type Profile.Tag_Number;
+   use type Profile.UTF_8_Status;
    use type Profile.Write_Status;
    use type Wire.Byte_Count;
+   use type Wire.Octet;
    use type Wire.Octet_Count;
 
    procedure Assert (Condition : Boolean; Message : String) is
@@ -52,6 +54,13 @@ procedure Tagged_Smoke is
          "unsigned value did not round trip");
    end Check_Unsigned;
 
+   procedure Check_UTF_8 (Bytes : Wire.Octet_Array; Expected : Profile.UTF_8_Status) is
+      Result : Profile.UTF_8_Status;
+   begin
+      Profile.Validate_UTF_8 (Bytes, (Start => 0, Length => Bytes'Length), Result);
+      Assert (Result = Expected, "UTF-8 validation returned the wrong status");
+   end Check_UTF_8;
+
    Output           : Wire.Octet_Array (20 .. 29) := [others => 16#CC#];
    Output_Before    : constant Wire.Octet_Array := Output;
    Small            : Wire.Octet_Array (1 .. 1) := [others => 16#DD#];
@@ -73,6 +82,9 @@ procedure Tagged_Smoke is
    Measured         : Wire.Byte_Count;
    Malformed        : Wire.Octet_Array (1 .. 10);
    Ordered_Record   : Wire.Octet_Array (20 .. 26) := [others => 16#CC#];
+   Long_Output      : Wire.Octet_Array (30 .. 159) := [others => 16#CC#];
+   Empty_Text       : constant Wire.Octet_Array (1 .. 0) := [others => 0];
+   UTF_8_Result     : Profile.UTF_8_Status;
 begin
    Check_Unsigned (0, [0 => 0]);
    Check_Unsigned (1, [0 => 1]);
@@ -270,6 +282,83 @@ begin
    Assert (Size_Result = Sizes.Computed and then Measured = 3, "field measurement is not exact");
    Profile.Measure_Field (1, Wire.Byte_Count'Last, Measured, Size_Result);
    Assert (Size_Result = Sizes.Overflow and then Measured = 0, "overflowing field measurement was accepted");
+
+   Output := [others => 16#CC#];
+   Profile.Initialize (Writer, Output);
+   Profile.Write_Length_Delimited (Output, Writer, 3, Region, Write_Result);
+   Assert
+     (Write_Result = Profile.Wrote
+      and then Region = (Start => 1, Length => 3)
+      and then Profile.Consumed (Writer) = 4
+      and then Output (20) = 3,
+      "short length-delimited header is not canonical");
+   Profile.Initialize (Reader, Output, (Start => 0, Length => 4), Cursor_Result);
+   Profile.Read_Length_Delimited (Output, Reader, Region, Read_Result);
+   Assert
+     (Cursor_Result = Profile.Cursor_Ready
+      and then Read_Result = Profile.Read
+      and then Region = (Start => 1, Length => 3)
+      and then Profile.At_End (Reader),
+      "length-delimited extent did not round trip");
+
+   Profile.Initialize (Writer, Long_Output);
+   Profile.Write_Length_Delimited (Long_Output, Writer, 128, Region, Write_Result);
+   Assert
+     (Write_Result = Profile.Wrote
+      and then Region = (Start => 2, Length => 128)
+      and then Profile.At_End (Writer)
+      and then Long_Output (30 .. 31) = [16#80#, 1],
+      "multibyte length is not canonical");
+
+   Small := Small_Before;
+   Profile.Initialize (Writer, Small);
+   Profile.Write_Length_Delimited (Small, Writer, 1, Region, Write_Result);
+   Assert
+     (Write_Result = Profile.Destination_Too_Small
+      and then Profile.Consumed (Writer) = 0
+      and then Small = Small_Before,
+      "short length-delimited destination was modified");
+
+   Profile.Initialize (Reader, Wire.Octet_Array'[1 => 4, 2 => 0]);
+   Profile.Read_Length_Delimited (Wire.Octet_Array'[1 => 4, 2 => 0], Reader, Region, Read_Result);
+   Assert
+     (Read_Result = Profile.Extent_Outside_Container and then Profile.Consumed (Reader) = 0,
+      "out-of-container delimited value was accepted or consumed");
+   Profile.Initialize (Reader, Wire.Octet_Array'[1 => 16#80#, 2 => 0]);
+   Profile.Read_Length_Delimited (Wire.Octet_Array'[1 => 16#80#, 2 => 0], Reader, Region, Read_Result);
+   Assert
+     (Read_Result = Profile.Noncanonical and then Profile.Consumed (Reader) = 0,
+      "overlong delimited length was accepted or consumed");
+
+   Profile.Measure_Length_Delimited (0, Measured, Size_Result);
+   Assert (Size_Result = Sizes.Computed and then Measured = 1, "empty delimited value measurement is wrong");
+   Profile.Measure_Length_Delimited (Wire.Byte_Count'Last, Measured, Size_Result);
+   Assert
+     (Size_Result = Sizes.Overflow and then Measured = 0, "overflowing delimited measurement was accepted");
+
+   Check_UTF_8
+     ([1  => 16#41#,
+       2  => 16#C2#,
+       3  => 16#A2#,
+       4  => 16#E2#,
+       5  => 16#82#,
+       6  => 16#AC#,
+       7  => 16#F0#,
+       8  => 16#90#,
+       9  => 16#8D#,
+       10 => 16#88#],
+      Profile.Valid_UTF_8);
+   Check_UTF_8 (Empty_Text, Profile.Valid_UTF_8);
+   Check_UTF_8 ([1 => 16#F4#, 2 => 16#8F#, 3 => 16#BF#, 4 => 16#BF#], Profile.Valid_UTF_8);
+   Check_UTF_8 ([1 => 16#C0#, 2 => 16#AF#], Profile.Invalid_UTF_8);
+   Check_UTF_8 ([1 => 16#C2#, 2 => 16#41#], Profile.Invalid_UTF_8);
+   Check_UTF_8 ([1 => 16#F5#, 2 => 16#80#, 3 => 16#80#, 4 => 16#80#], Profile.Invalid_UTF_8);
+   Check_UTF_8 ([1 => 16#ED#, 2 => 16#A0#, 3 => 16#80#], Profile.Invalid_UTF_8);
+   Check_UTF_8 ([1 => 16#F4#, 2 => 16#90#, 3 => 16#80#, 4 => 16#80#], Profile.Invalid_UTF_8);
+   Check_UTF_8 ([1 => 16#E2#, 2 => 16#82#], Profile.Invalid_UTF_8);
+   Check_UTF_8 ([1 => 16#80#], Profile.Invalid_UTF_8);
+   Profile.Validate_UTF_8 (Small, (Start => 1, Length => 1), UTF_8_Result);
+   Assert (UTF_8_Result = Profile.Invalid_UTF_8_Extent, "invalid UTF-8 extent was accepted");
 
    Profile.Initialize (Nested_Reader, Small, (Start => 1, Length => 1), Cursor_Result);
    Assert (Cursor_Result = Profile.Invalid_Extent, "invalid nested extent was accepted");
