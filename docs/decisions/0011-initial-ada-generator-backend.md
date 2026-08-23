@@ -72,9 +72,10 @@ codec's runtime dependency closure.
 
 - Backend development and runtime verification can continue without locking
   against an unstable Type IR interchange.
-- The initial backend is intentionally not called complete Profile 1
-  derivation. Decision 0012 adds the first reviewed compatibility-edge
-  lowering; optional/defaulted fields, nested values, and borrowed visitors
-  require further reviewed stages.
+- This initial slice is intentionally not called complete Profile 1
+  derivation. Decisions 0012 through 0021 subsequently add the reviewed
+  compatibility, defaulted/optional, bounded-container, observer, text, enum,
+  and initial variant slices. Their documented restrictions and the Type IR
+  adapter remain explicit completion boundaries.
 - Handwritten adapters continue to satisfy the same static runtime contract;
   the generator does not introduce a second remoting codec abstraction.

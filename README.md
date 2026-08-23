@@ -14,8 +14,9 @@ cursor primitives for canonical tagged Profile 1. A scoped generic extent
 lender supports generated two-pass borrowed observers without returning a
 view or retaining an access value. The repository also contains the closed
 Profile 1 schema-lock format, offline fingerprint validator, directional
-compatibility diff, and exact compatibility-approval format. Schema derivation
-remains an offline addition. The initial deterministic Ada backend generates
+compatibility diff, and exact compatibility-approval format. Ada-source
+derivation through the shared Type IR remains an offline addition. The initial
+deterministic Ada backend generates
 a codec for nonempty records containing required/defaulted/optional scalar
 fields, required bounded byte/UTF-8 text fields, required enumerations, or
 required one-dimensional bounded scalar sequences from a checked binding

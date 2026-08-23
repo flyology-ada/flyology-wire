@@ -32,7 +32,7 @@ jobs:
         with:
           python-version: "3.9"
       - name: Install Alire
-        uses: alire-project/setup-alire@fc4c8ce471aa30b3af0d39ce15add1ee9eaf28f2 # v6.0.0
+        uses: alire-project/setup-alire@1ff7d9224297858cc9ecce29b08bc6109f93e49a # v6 Node.js 24 update
         with:
           version: 2.1.1
           toolchain: >-
@@ -52,7 +52,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Install Alire
-        uses: alire-project/setup-alire@fc4c8ce471aa30b3af0d39ce15add1ee9eaf28f2 # v6.0.0
+        uses: alire-project/setup-alire@1ff7d9224297858cc9ecce29b08bc6109f93e49a # v6 Node.js 24 update
         with:
           version: 2.1.1
           toolchain: >-
