@@ -1,0 +1,15 @@
+name = "flyology_wire_tests"
+description = "Tests for flyology_wire"
+version = "0.1.0-dev"
+
+authors = ["Yurii Rashkovskii"]
+maintainers = ["Yurii Rashkovskii <yrashk@gmail.com>"]
+maintainers-logins = ["yrashk"]
+licenses = "MIT OR Apache-2.0"
+project-files = ["flyology_wire_tests.gpr"]
+
+[[depends-on]]
+flyology_wire = "*"
+
+[[pins]]
+flyology_wire = { path = ".." }
