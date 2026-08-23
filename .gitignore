@@ -6,3 +6,8 @@
 /tests/bin/
 /tests/alire/
 /tests/config/
+/.agents/
+/.claude/rules/
+/.claude/skills/
+# APM dependencies
+apm_modules/

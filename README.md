@@ -31,3 +31,20 @@ Architecture and implementation changes follow the mandatory review cycle in
 [`CONTRIBUTING.md`](CONTRIBUTING.md). The initial runtime boundary is recorded
 in [`docs/decisions/0001-runtime-boundary.md`](docs/decisions/0001-runtime-boundary.md).
 The corresponding review record is under [`docs/reviews/`](docs/reviews/).
+
+## Agent setup
+
+Flyology Wire provisions shared Ada-library agent instructions and skills
+through [APM](https://microsoft.github.io/apm/). Install APM 0.28.0 and the
+exact dependency revision in `apm.lock.yaml`, then reproduce the committed
+Codex resources with:
+
+```sh
+apm install --frozen
+apm compile --target codex
+apm audit --ci
+```
+
+The repository-specific instruction source is under `agent-packages/`; the
+root `AGENTS.md` is generated and committed so an agent can use the repository
+without a setup step.
