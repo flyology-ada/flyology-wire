@@ -13,3 +13,4 @@ fi
 
 "$crate_root/tests/bin/wire_smoke"
 "$crate_root/tests/bin/tagged_smoke"
+"$crate_root/tests/bin/compatibility_smoke"
