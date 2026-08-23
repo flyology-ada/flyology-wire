@@ -1,6 +1,6 @@
 # 0003: Canonical tagged payload profile 1
 
-Status: proposed; requires user acceptance before implementation
+Status: accepted on 2026-08-23
 
 ## Context
 

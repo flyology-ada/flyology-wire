@@ -9,10 +9,11 @@ shared size helpers make composed exact measurement overflow-safe. The crate
 performs no I/O and has no dependency on Flyology or remoting.
 
 The current milestone contains the minimum runtime surface needed by
-`flyology_remoting`. Canonical payload profiles, schema derivation, compatibility
-tooling, and generated codecs will be added separately. Libadalang is a
-build-tool dependency of the planned shared `flyology_type_ir` extractor, not a
-runtime dependency of this crate.
+`flyology_remoting` and the allocation-free scalar, field-header, extent, and
+cursor primitives for canonical tagged Profile 1. Schema derivation,
+compatibility tooling, and generated codecs remain offline additions.
+Libadalang is a build-tool dependency of the shared `flyology_type_ir`
+extractor, not a runtime dependency of this crate.
 
 GNAT 16 is the primary development toolchain. The declared Alire dependency
 also permits GNAT 13 through 15 so compatibility can be checked without making
