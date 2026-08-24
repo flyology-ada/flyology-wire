@@ -70,3 +70,27 @@ jobs:
           cache: true
       - name: Build the library in release mode
         run: alr -n build --release
+      - name: Build the generator in release mode
+        run: |
+          alr -C flyology_wire_generator -n build --release
+          alr -C flyology_wire_generator -n build --release -- -U
+
+  generator-gnat-15:
+    name: Generator (GNAT 15)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out sources
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Install Alire
+        uses: alire-project/setup-alire@1ff7d9224297858cc9ecce29b08bc6109f93e49a # v6 Node.js 24 update
+        with:
+          version: 2.1.1
+          toolchain: >-
+            gnat_native=15.3.1
+            gprbuild=26.0.1
+          cache: true
+      - name: Run generator tests
+        run: ./flyology_wire_generator/scripts/test.sh

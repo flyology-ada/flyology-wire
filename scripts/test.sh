@@ -9,6 +9,8 @@ if [ -z "$type_ir_root" ] || [ ! -d "$type_ir_root" ]; then
   exit 1
 fi
 
+"$crate_root/flyology_wire_generator/scripts/test.sh"
+
 python3 "$crate_root/tools/test_schema_lock.py"
 python3 "$crate_root/tools/test_schema_diff.py"
 python3 "$crate_root/tools/test_generate_ada.py"
