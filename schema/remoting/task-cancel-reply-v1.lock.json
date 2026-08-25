@@ -1,0 +1,22 @@
+{
+  "family_id": "cc8b4d25bc3c4d3dbd51e3bedc808bbb",
+  "fingerprint": "ee4b58090ca76a3219742a27d311965629b247d362d42a1cbde75b6f62d1bcd6",
+  "lock_format": "flyology-wire-schema-lock",
+  "lock_version": 1,
+  "profile_id": 1,
+  "root": {
+    "alternatives": [
+      {
+        "tag": 1,
+        "value": {"fields": [], "kind": "record", "reserved_tags": []}
+      },
+      {
+        "tag": 2,
+        "value": {"fields": [], "kind": "record", "reserved_tags": []}
+      }
+    ],
+    "kind": "variant",
+    "reserved_tags": []
+  },
+  "schema_revision": 1
+}

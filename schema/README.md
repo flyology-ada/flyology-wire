@@ -94,3 +94,19 @@ selector and a complete `ada_alternatives` map for selected record payloads.
 Only required Boolean and 64-bit integer alternative fields are currently
 lowered. Decision 0021 defines the flat tagged-union contract and its deliberate
 fail-closed restrictions.
+
+## Remoting task-control locks
+
+`schema/remoting/` contains the six reviewed Profile 1 locks for task start,
+cancel, and observation requests and replies. Decision 0025 assigns their
+semantic field and variant meanings and defines why one start attempt uses two
+strictly adjacent request messages: the generated control request followed by
+the separately leased application initialization payload with its own envelope
+schema identity. The locks add no Remoting dependency to the Wire runtime.
+
+The maintained schema-lock tests validate every embedded fingerprint, family
+uniqueness, and exact maximum encoded size:
+
+```sh
+python3 tools/test_schema_lock.py
+```

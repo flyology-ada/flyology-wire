@@ -28,6 +28,15 @@ VARIANT_FIXTURE = FIXTURE.with_name("profile-1-variant-record.lock.json")
 PROJECTION = FIXTURE.with_name("profile-1-record.projection.json")
 DIGEST = FIXTURE.with_name("profile-1-record.sha256")
 ADA_CODEC = FIXTURE.parents[2] / "tests" / "src" / "profile_1_test_codec.ads"
+REMOTING_LOCKS = {
+    "task-start-request-v1.lock.json": 25,
+    "task-start-reply-v1.lock.json": 62,
+    "task-cancel-request-v1.lock.json": 60,
+    "task-cancel-reply-v1.lock.json": 2,
+    "task-observe-request-v1.lock.json": 60,
+    "task-observe-reply-v1.lock.json": 62,
+}
+REMOTING_ROOT = FIXTURE.parents[1] / "remoting"
 
 
 def signed(minimum: str, maximum: str) -> dict[str, object]:
@@ -163,6 +172,16 @@ class Schema_Lock_Tests(unittest.TestCase):
         ):
             with self.subTest(fixture=fixture.name):
                 schema_lock.validate_lock(schema_lock.load(fixture))
+
+    def test_remoting_control_locks(self) -> None:
+        families = set()
+        for name, maximum in REMOTING_LOCKS.items():
+            with self.subTest(lock=name):
+                document = schema_lock.load(REMOTING_ROOT / name)
+                schema_lock.validate_lock(document)
+                self.assertEqual(schema_lock.maximum_size(document["root"]), maximum)
+                self.assertNotIn(document["family_id"], families)
+                families.add(document["family_id"])
 
     def test_committed_golden_projection(self) -> None:
         document = schema_lock.load(FIXTURE)

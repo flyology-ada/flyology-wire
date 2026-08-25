@@ -1,0 +1,85 @@
+{
+  "family_id": "97d8fd939a27410dbf88b6dc74c01db9",
+  "fingerprint": "9eb3288b46e957c5ea3fe0e6fec332b7963e3cad8539de1f8a4f06b7a43c6c0e",
+  "lock_format": "flyology-wire-schema-lock",
+  "lock_version": 1,
+  "profile_id": 1,
+  "root": {
+    "alternatives": [
+      {
+        "tag": 1,
+        "value": {
+          "fields": [
+            {
+              "presence": "required",
+              "tag": 1,
+              "value": {
+                "construction_lower_bound": "1",
+                "kind": "bytes",
+                "maximum_octets": "16",
+                "minimum_octets": "16"
+              }
+            },
+            {
+              "presence": "required",
+              "tag": 2,
+              "value": {
+                "construction_lower_bound": "1",
+                "kind": "bytes",
+                "maximum_octets": "16",
+                "minimum_octets": "16"
+              }
+            },
+            {
+              "presence": "required",
+              "tag": 3,
+              "value": {
+                "kind": "unsigned",
+                "maximum": "18446744073709551615",
+                "minimum": "1"
+              }
+            },
+            {
+              "presence": "required",
+              "tag": 4,
+              "value": {
+                "kind": "unsigned",
+                "maximum": "18446744073709551615",
+                "minimum": "1"
+              }
+            }
+          ],
+          "kind": "record",
+          "reserved_tags": []
+        }
+      },
+      {
+        "tag": 2,
+        "value": {"fields": [], "kind": "record", "reserved_tags": []}
+      },
+      {
+        "tag": 3,
+        "value": {"fields": [], "kind": "record", "reserved_tags": []}
+      },
+      {
+        "tag": 4,
+        "value": {"fields": [], "kind": "record", "reserved_tags": []}
+      },
+      {
+        "tag": 5,
+        "value": {"fields": [], "kind": "record", "reserved_tags": []}
+      },
+      {
+        "tag": 6,
+        "value": {"fields": [], "kind": "record", "reserved_tags": []}
+      },
+      {
+        "tag": 7,
+        "value": {"fields": [], "kind": "record", "reserved_tags": []}
+      }
+    ],
+    "kind": "variant",
+    "reserved_tags": []
+  },
+  "schema_revision": 1
+}
